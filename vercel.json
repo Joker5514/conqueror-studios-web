@@ -2,10 +2,10 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/projects", "destination": "/projects.html" },
-    { "source": "/studio",   "destination": "/studio.html" },
-    { "source": "/waitlist", "destination": "/waitlist.html" },
-    { "source": "/support",  "destination": "/support.html" }
+    { "source": "/projects", "destination": "/projects" },
+    { "source": "/studio",   "destination": "/studio" },
+    { "source": "/waitlist", "destination": "/waitlist" },
+    { "source": "/support",  "destination": "/support" }
   ],
   "headers": [
     {
