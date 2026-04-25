@@ -4,37 +4,50 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Conqueror Studios | Experimental AI Systems Lab</title>
-    <meta
-      name="description"
-      content="Conqueror Studios is an independent AI R&D lab exploring multi-agent orchestration, voice-first interfaces, and federated agentic architectures in real products."
-    />
+    <meta name="description" content="Conqueror Studios is an independent AI R&D lab exploring multi-agent orchestration, voice-first interfaces, and federated agentic architectures in real products." />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Conqueror Studios | Experimental AI Systems Lab" />
+    <meta property="og:description" content="Independent AI R&D. Multi-agent orchestration, voice-first interfaces, federated agentic architectures." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://conquerorstudios.dev" />
+    <meta property="og:image" content="https://conquerorstudios.dev/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Conqueror Studios" />
+    <meta name="twitter:description" content="Independent AI R&D Lab — Mobile, Alabama" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://conquerorstudios.dev" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="bg-grid"></div>
-    <div class="bg-glow glow-1"></div>
-    <div class="bg-glow glow-2"></div>
+    <!-- Skip to content -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <header class="site-header">
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow glow-1" aria-hidden="true"></div>
+    <div class="bg-glow glow-2" aria-hidden="true"></div>
+
+    <header class="site-header" role="banner">
       <div class="container nav-wrap">
-        <a href="#hero" class="brand">
-          <span class="brand-mark">C</span>
+        <a href="#hero" class="brand" aria-label="Conqueror Studios home">
+          <span class="brand-mark" aria-hidden="true">C</span>
           <span class="brand-text">Conqueror Studios</span>
         </a>
 
-        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="siteNav">
           <span></span>
           <span></span>
           <span></span>
         </button>
 
-        <nav class="site-nav" id="siteNav">
+        <nav class="site-nav" id="siteNav" role="navigation" aria-label="Main navigation">
           <a href="#experiments">Experiments</a>
           <a href="#lab">The Lab</a>
           <a href="#instruments">Instruments</a>
@@ -46,13 +59,13 @@
       </div>
     </header>
 
-    <main>
+    <main id="main-content">
       <!-- HERO -->
-      <section class="hero" id="hero">
+      <section class="hero" id="hero" aria-labelledby="hero-heading">
         <div class="container hero-grid">
           <div class="hero-copy reveal">
             <span class="eyebrow">Independent AI R&amp;D Lab · Mobile, Alabama</span>
-            <h1>We run experiments on how AI systems behave in the wild.</h1>
+            <h1 id="hero-heading">We run experiments on how AI systems behave in the wild.</h1>
             <p class="hero-text">
               Conqueror Studios designs and instruments multi-agent systems, federated agentic
               architectures, voice-first interfaces, and orchestration layers—treating every
@@ -62,16 +75,16 @@
               <a href="#experiments" class="btn btn-primary">Browse experiments</a>
               <a href="#contact" class="btn btn-secondary">Propose a study</a>
             </div>
-            <div class="hero-stats">
-              <div class="stat-card">
+            <div class="hero-stats" role="list">
+              <div class="stat-card" role="listitem">
                 <strong data-target="5">0</strong>
                 <span>Active experiments</span>
               </div>
-              <div class="stat-card">
+              <div class="stat-card" role="listitem">
                 <strong data-target="3">0</strong>
                 <span>Agent architectures</span>
               </div>
-              <div class="stat-card">
+              <div class="stat-card" role="listitem">
                 <strong data-target="100">0</strong>
                 <span>Open questions</span>
               </div>
@@ -79,18 +92,12 @@
           </div>
 
           <div class="hero-panel reveal delay-1">
-            <div class="signal-card terminal-card">
-              <div class="terminal-top">
+            <div class="signal-card terminal-card" role="region" aria-label="Lab status terminal">
+              <div class="terminal-top" aria-hidden="true">
                 <span></span><span></span><span></span>
               </div>
-              <div class="terminal-body">
-                <p>&gt; initializing conqueror.lab</p>
-                <p>&gt; loading experiment graph...</p>
-                <p>&gt; voice isolation nodes: <span class="t-green">online</span></p>
-                <p>&gt; orchestration agents: <span class="t-green">online</span></p>
-                <p>&gt; MCP bridge layer: <span class="t-green">online</span></p>
-                <p>&gt; LangGraph checkpointer: <span class="t-green">online</span></p>
-                <p class="accent-line">&gt; status: <span class="t-accent">observing behavior in production</span></p>
+              <div class="terminal-body" id="terminalBody" aria-live="polite">
+                <!-- populated by typewriter JS -->
               </div>
             </div>
             <div class="mini-grid">
@@ -108,7 +115,7 @@
       </section>
 
       <!-- HYPOTHESIS BANNER -->
-      <section class="hypothesis-band">
+      <section class="hypothesis-band" aria-label="Lab hypothesis">
         <div class="container">
           <p class="hypothesis-text">
             <span class="eyebrow-inline">Lab hypothesis &mdash;</span>
@@ -120,11 +127,11 @@
       </section>
 
       <!-- EXPERIMENTS -->
-      <section class="section" id="experiments">
+      <section class="section" id="experiments" aria-labelledby="experiments-heading">
         <div class="container">
           <div class="section-heading reveal">
             <span class="eyebrow">Active Experiments</span>
-            <h2>Systems we're studying</h2>
+            <h2 id="experiments-heading">Systems we're studying</h2>
             <p>
               Every project is framed as a question, built as the smallest testable system,
               and instrumented so behavior is observable — not guessed at.
@@ -135,7 +142,7 @@
             <article class="project-card reveal">
               <div class="card-top">
                 <span class="tag">Federated Agents · MCP</span>
-                <span class="status">Core build</span>
+                <span class="status status--active">Core build</span>
               </div>
               <h3>AI Bridge</h3>
               <p>
@@ -155,7 +162,7 @@
             <article class="project-card reveal delay-1">
               <div class="card-top">
                 <span class="tag">Multi-Agent · Orchestration</span>
-                <span class="status">Flagship</span>
+                <span class="status status--flagship">Flagship</span>
               </div>
               <h3>OrchestrAI Nexus</h3>
               <p>
@@ -246,11 +253,11 @@
       </section>
 
       <!-- THE LAB -->
-      <section class="section studio-section" id="lab">
+      <section class="section studio-section" id="lab" aria-labelledby="lab-heading">
         <div class="container studio-grid">
           <div class="reveal">
             <span class="eyebrow">The Lab</span>
-            <h2>How Conqueror Studios operates</h2>
+            <h2 id="lab-heading">How Conqueror Studios operates</h2>
             <div class="feature-list">
               <div class="feature-item">
                 <h3>Start from a research question</h3>
@@ -310,11 +317,11 @@
       </section>
 
       <!-- LAB INSTRUMENTS / STACK -->
-      <section class="section" id="instruments">
+      <section class="section" id="instruments" aria-labelledby="instruments-heading">
         <div class="container">
           <div class="section-heading reveal">
             <span class="eyebrow">Lab Instruments</span>
-            <h2>Stack &amp; infrastructure</h2>
+            <h2 id="instruments-heading">Stack &amp; infrastructure</h2>
             <p>
               We care about how tools behave under stress. Our stack is biased toward transparency,
               composability, and developer ergonomics — because experiments are messy by default.
@@ -383,22 +390,22 @@
       </section>
 
       <!-- WAITLIST -->
-      <section class="section form-section" id="waitlist">
+      <section class="section form-section" id="waitlist" aria-labelledby="waitlist-heading">
         <div class="container form-layout">
           <div class="section-heading reveal">
             <span class="eyebrow">Waitlist</span>
-            <h2>Get early access &amp; lab updates</h2>
+            <h2 id="waitlist-heading">Get early access &amp; lab updates</h2>
             <p>Join the first wave of users, testers, and research collaborators.</p>
           </div>
 
-          <form class="glass-form reveal delay-1" id="waitlistForm">
+          <form class="glass-form reveal delay-1" id="waitlistForm" novalidate>
             <label>
               Name
-              <input type="text" name="name" placeholder="Your name" required />
+              <input type="text" name="name" placeholder="Your name" required autocomplete="name" />
             </label>
             <label>
               Email
-              <input type="email" name="email" placeholder="you@example.com" required />
+              <input type="email" name="email" placeholder="you@example.com" required autocomplete="email" />
             </label>
             <label>
               Which experiment are you following?
@@ -413,31 +420,31 @@
               </select>
             </label>
             <button type="submit" class="btn btn-primary full">Join the waitlist</button>
-            <p class="form-message" id="waitlistMessage"></p>
+            <p class="form-message" id="waitlistMessage" role="status" aria-live="polite"></p>
           </form>
         </div>
       </section>
 
       <!-- SUGGEST -->
-      <section class="section form-section alt" id="suggest">
+      <section class="section form-section alt" id="suggest" aria-labelledby="suggest-heading">
         <div class="container form-layout">
           <div class="section-heading reveal">
             <span class="eyebrow">Open Questions</span>
-            <h2>Tell us what to study next</h2>
+            <h2 id="suggest-heading">Tell us what to study next</h2>
             <p>
               We keep a backlog of open questions about orchestration, evaluation, and voice
               interfaces. If your system overlaps, we probably want to collaborate.
             </p>
           </div>
 
-          <form class="glass-form reveal delay-1" id="suggestionForm">
+          <form class="glass-form reveal delay-1" id="suggestionForm" novalidate>
             <label>
               Name
-              <input type="text" name="name" placeholder="Optional" />
+              <input type="text" name="name" placeholder="Optional" autocomplete="name" />
             </label>
             <label>
               Email
-              <input type="email" name="email" placeholder="Optional" />
+              <input type="email" name="email" placeholder="Optional" autocomplete="email" />
             </label>
             <label>
               What system or constraint are you studying?
@@ -449,17 +456,17 @@
               ></textarea>
             </label>
             <button type="submit" class="btn btn-secondary full">Submit to the lab queue</button>
-            <p class="form-message" id="suggestionMessage"></p>
+            <p class="form-message" id="suggestionMessage" role="status" aria-live="polite"></p>
           </form>
         </div>
       </section>
 
       <!-- SUPPORT -->
-      <section class="section" id="support">
+      <section class="section" id="support" aria-labelledby="support-heading">
         <div class="container support-grid">
           <div class="section-heading reveal">
             <span class="eyebrow">Support the lab</span>
-            <h2>Fund independent AI research</h2>
+            <h2 id="support-heading">Fund independent AI research</h2>
             <p>
               Contributions accelerate prototyping, sandboxed execution, eval tooling, and
               open-ended experiments that wouldn&rsquo;t exist inside a corporate roadmap.
@@ -488,11 +495,11 @@
       </section>
 
       <!-- CONTACT -->
-      <section class="section contact-section" id="contact">
+      <section class="section contact-section" id="contact" aria-labelledby="contact-heading">
         <div class="container contact-grid">
           <div class="reveal">
             <span class="eyebrow">Collaborate</span>
-            <h2>Bring us a messy system, not a polished brief</h2>
+            <h2 id="contact-heading">Bring us a messy system, not a polished brief</h2>
             <p>
               Legacy workflows, overlapping tools, strange constraints — these make the best
               experiments. If your AI problem is weird, we probably want to study it.
@@ -505,7 +512,8 @@
 
           <div class="contact-card reveal delay-1">
             <a href="mailto:hello@conquerorstudios.dev">hello@conquerorstudios.dev</a>
-            <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer">GitHub &rarr;</a>
+            <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub &rarr;</a>
+            <a href="https://linkedin.com/in/randy-jordan" target="_blank" rel="noreferrer noopener">LinkedIn &rarr;</a>
             <p class="contact-loc">Mobile, Alabama</p>
             <div class="contact-note">
               <p>We reserve time each week for short calls with teams exploring new AI systems.
@@ -516,10 +524,14 @@
       </section>
     </main>
 
-    <footer class="site-footer">
+    <footer class="site-footer" role="contentinfo">
       <div class="container footer-wrap">
-        <p>© 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
-        <a href="#hero">Back to top</a>
+        <p>&copy; 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
+        <div class="footer-links">
+          <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
+          <a href="mailto:hello@conquerorstudios.dev">Email</a>
+          <a href="#hero">Back to top &uarr;</a>
+        </div>
       </div>
     </footer>
 

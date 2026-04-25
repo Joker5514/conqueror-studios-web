@@ -38,14 +38,50 @@ function animateCounter(el) {
   }, step);
 }
 
+// ── Active nav highlighting ───────────────────────────────
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.site-nav a');
+
+const navObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + entry.target.id) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  },
+  { rootMargin: '-30% 0px -60% 0px' }
+);
+
+sections.forEach(sec => navObserver.observe(sec));
+
 // ── Mobile menu ───────────────────────────────────────────
 const toggle = document.getElementById('menuToggle');
 const nav    = document.getElementById('siteNav');
 if (toggle && nav) {
-  toggle.addEventListener('click', () => nav.classList.toggle('open'));
+  toggle.addEventListener('click', () => {
+    const isOpen = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
+  });
   nav.querySelectorAll('a').forEach(a =>
-    a.addEventListener('click', () => nav.classList.remove('open'))
+    a.addEventListener('click', () => {
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    })
   );
+  // Close on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && nav.classList.contains('open')) {
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.focus();
+    }
+  });
 }
 
 // ── Form handlers ─────────────────────────────────────────
@@ -55,29 +91,109 @@ function handleForm(formId, msgId, successText) {
   if (!form || !msg) return;
   form.addEventListener('submit', e => {
     e.preventDefault();
-    msg.textContent = successText;
-    msg.style.color = 'var(--accent)';
-    form.reset();
-    setTimeout(() => msg.textContent = '', 5000);
+    // Basic HTML5 validation check
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+    // Simulate async submission (replace with real fetch)
+    setTimeout(() => {
+      msg.textContent = successText;
+      msg.style.color = 'var(--accent)';
+      form.reset();
+      if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Submit'; }
+      setTimeout(() => msg.textContent = '', 6000);
+    }, 800);
   });
+  // Cache original button label
+  const btn = form.querySelector('button[type="submit"]');
+  if (btn) btn.dataset.label = btn.textContent;
 }
 
-handleForm('waitlistForm',   'waitlistMessage',   '✓ You're on the list. We'll reach out before launch.');
-handleForm('suggestionForm', 'suggestionMessage', '✓ Added to the lab queue. We read every one.');
+handleForm('waitlistForm',   'waitlistMessage',   '\u2713 You\u2019re on the list. We\u2019ll reach out before launch.');
+handleForm('suggestionForm', 'suggestionMessage', '\u2713 Added to the lab queue. We read every one.');
 
-// ── Typing animation on terminal card ────────────────────
-const lines = [
-  '> initializing conqueror.lab',
-  '> loading experiment graph...',
-  '> voice isolation nodes: online',
-  '> orchestration agents: online',
-  '> MCP bridge layer: online',
-  '> LangGraph checkpointer: online',
-  '> status: observing behavior in production',
+// ── Typewriter animation on terminal card ────────────────
+const terminalLines = [
+  { text: '> initializing conqueror.lab', className: '' },
+  { text: '> loading experiment graph...', className: '' },
+  { text: '> voice isolation nodes: ', suffix: 'online', suffixClass: 't-green' },
+  { text: '> orchestration agents: ', suffix: 'online', suffixClass: 't-green' },
+  { text: '> MCP bridge layer: ', suffix: 'online', suffixClass: 't-green' },
+  { text: '> LangGraph checkpointer: ', suffix: 'online', suffixClass: 't-green' },
+  { text: '> status: ', suffix: 'observing behavior in production', suffixClass: 't-accent', isAccent: true },
 ];
 
-const terminalBody = document.querySelector('.terminal-body');
+const terminalBody = document.getElementById('terminalBody');
+
 if (terminalBody) {
-  // Static render — could be replaced with animated typewriter if desired
-  // Currently rendered from HTML; this block can be used for dynamic updates
+  // Insert a blinking cursor element
+  const cursor = document.createElement('span');
+  cursor.className = 'terminal-cursor';
+
+  let lineIndex = 0;
+  let charIndex = 0;
+  let currentP = null;
+  let phase = 'main'; // 'main' | 'suffix'
+
+  function typeNext() {
+    if (lineIndex >= terminalLines.length) {
+      // Done: show cursor at end of last line
+      if (currentP) currentP.appendChild(cursor);
+      return;
+    }
+
+    const line = terminalLines[lineIndex];
+
+    if (charIndex === 0) {
+      // Create new paragraph for this line
+      currentP = document.createElement('p');
+      if (line.isAccent) currentP.classList.add('accent-line');
+      terminalBody.appendChild(cursor); // cursor at bottom during typing
+      terminalBody.appendChild(currentP); // will be after cursor temporarily — swap:
+      terminalBody.insertBefore(currentP, cursor);
+    }
+
+    const fullText = phase === 'main' ? line.text : (line.suffix || '');
+
+    if (charIndex < fullText.length) {
+      if (phase === 'suffix') {
+        // Build suffix span if not already
+        let suffixSpan = currentP.querySelector('.' + line.suffixClass);
+        if (!suffixSpan) {
+          suffixSpan = document.createElement('span');
+          suffixSpan.className = line.suffixClass;
+          currentP.appendChild(suffixSpan);
+        }
+        suffixSpan.textContent = fullText.slice(0, charIndex + 1);
+      } else {
+        // Write plain text node
+        if (!currentP._textNode) {
+          currentP._textNode = document.createTextNode('');
+          currentP.appendChild(currentP._textNode);
+        }
+        currentP._textNode.textContent = fullText.slice(0, charIndex + 1);
+      }
+      charIndex++;
+      setTimeout(typeNext, 28);
+    } else {
+      // Current segment done
+      if (phase === 'main' && line.suffix) {
+        phase = 'suffix';
+        charIndex = 0;
+        setTimeout(typeNext, 28);
+      } else {
+        // Move to next line
+        lineIndex++;
+        charIndex = 0;
+        phase = 'main';
+        setTimeout(typeNext, 120);
+      }
+    }
+  }
+
+  // Start after a short delay so page load feels clean
+  setTimeout(typeNext, 600);
 }
