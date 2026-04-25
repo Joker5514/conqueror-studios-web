@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install htmlhint
+        run: npm install -g htmlhint
+
+      - name: Lint HTML
+        run: htmlhint index.html --config .htmlhintrc || true
+
+      - name: Install stylelint
+        run: npm install -g stylelint stylelint-config-standard
+
+      - name: Lint CSS
+        run: stylelint styles.css --config '{"extends":"stylelint-config-standard"}' || true
+
+      - name: Check file sizes
+        run: |
+          echo "=== File sizes ==="
+          ls -lh index.html styles.css script.js
+          HTML_SIZE=$(wc -c < index.html)
+          CSS_SIZE=$(wc -c < styles.css)
+          JS_SIZE=$(wc -c < script.js)
+          echo "HTML: ${HTML_SIZE} bytes"
+          echo "CSS:  ${CSS_SIZE} bytes"
+          echo "JS:   ${JS_SIZE} bytes"
+          if [ $HTML_SIZE -gt 500000 ]; then
+            echo "WARNING: index.html exceeds 500KB"
+          fi
+
+      - name: Check for broken internal links
+        run: |
+          echo "=== Checking anchor targets ==="
+          grep -oP 'href="#\K[^"]+' index.html | sort -u > anchors_used.txt
+          grep -oP 'id="\K[^"]+' index.html | sort -u > ids_defined.txt
+          echo "Anchors used:"
+          cat anchors_used.txt
+          echo "IDs defined:"
+          cat ids_defined.txt
+          while IFS= read -r anchor; do
+            if ! grep -q "^${anchor}$" ids_defined.txt; then
+              echo "BROKEN LINK: #${anchor} has no matching id"
+            fi
+          done < anchors_used.txt
+          echo "Link check complete."
+
+      - name: Verify required meta tags
+        run: |
+          echo "=== Checking meta tags ==="
+          for tag in "og:title" "og:description" "og:type" "twitter:card" "canonical"; do
+            if grep -q "$tag" index.html; then
+              echo "OK: $tag found"
+            else
+              echo "MISSING: $tag not found in index.html"
+            fi
+          done
+
+      - name: Summary
+        run: echo "CI complete for conqueror-studios-web"
+
+  lighthouse-budget:
+    name: Perf Budget Check
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check total asset size budget
+        run: |
+          echo "=== Asset Budget Check ==="
+          TOTAL=0
+          for file in index.html styles.css script.js; do
+            SIZE=$(wc -c < $file)
+            TOTAL=$((TOTAL + SIZE))
+            echo "$file: ${SIZE} bytes"
+          done
+          echo "Total uncompressed: ${TOTAL} bytes"
+          BUDGET=300000
+          if [ $TOTAL -gt $BUDGET ]; then
+            echo "WARN: Total size ${TOTAL}b exceeds budget ${BUDGET}b (300KB)"
+          else
+            echo "OK: Within 300KB budget"
+          fi
