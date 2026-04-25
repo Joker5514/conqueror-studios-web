@@ -1,0 +1,292 @@
+/* ===== MULTI-PAGE ADDITIONS ===== */
+
+/* Navbar active state */
+.nav-links a.active {
+  color: var(--accent);
+  border-bottom: 2px solid #ff0040;
+}
+
+/* Page Hero */
+.page-hero {
+  text-align: center;
+  padding: 120px 20px 60px;
+  background: radial-gradient(ellipse at center, rgba(255,0,64,0.08) 0%, transparent 70%);
+}
+
+.page-hero .hero-sub {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.2rem;
+  color: #aaa;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Page main wrapper */
+.page-main {
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ===== ANIMATION CLASSES ===== */
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.animate-fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.delay-1 { transition-delay: 0.15s; }
+.delay-2 { transition-delay: 0.3s; }
+.delay-3 { transition-delay: 0.45s; }
+
+/* ===== PROJECT CARDS ===== */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+
+.project-card {
+  position: relative;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,0,64,0.2);
+  border-radius: 12px;
+  padding: 28px;
+  overflow: hidden;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.project-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255,0,64,0.6);
+}
+.project-card h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.1rem;
+  color: #ff0040;
+  margin-bottom: 10px;
+}
+.project-card p {
+  font-family: 'Rajdhani', sans-serif;
+  color: #ccc;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.card-tags span {
+  background: rgba(255,0,64,0.12);
+  border: 1px solid rgba(255,0,64,0.3);
+  color: #ff6680;
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-family: 'Rajdhani', sans-serif;
+}
+.card-glow {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(255,0,64,0.15), transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ===== BUTTONS ===== */
+.btn-outline {
+  display: inline-block;
+  border: 1px solid #ff0040;
+  color: #ff0040;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.25s, color 0.25s;
+}
+.btn-outline:hover {
+  background: #ff0040;
+  color: #fff;
+}
+.btn-primary {
+  display: inline-block;
+  background: #ff0040;
+  color: #fff;
+  padding: 12px 28px;
+  border-radius: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.25s, transform 0.2s;
+}
+.btn-primary:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
+}
+
+/* ===== STUDIO PAGE ===== */
+.studio-about {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+@media (max-width: 700px) { .studio-about { grid-template-columns: 1fr; } }
+.about-block h2 {
+  font-family: 'Orbitron', sans-serif;
+  color: #ff0040;
+  font-size: 1.1rem;
+  margin-bottom: 14px;
+}
+.about-block p, .about-block li {
+  font-family: 'Rajdhani', sans-serif;
+  color: #ccc;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.stack-list {
+  list-style: none;
+  padding: 0;
+}
+.stack-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.studio-mission {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+  text-align: center;
+}
+.studio-mission h2 {
+  font-family: 'Orbitron', sans-serif;
+  color: #ff0040;
+  margin-bottom: 16px;
+}
+.studio-mission p {
+  font-family: 'Rajdhani', sans-serif;
+  color: #ccc;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+/* ===== WAITLIST FORM ===== */
+.waitlist-form-section {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+.waitlist-form, .support-form {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,0,64,0.2);
+  border-radius: 12px;
+  padding: 36px;
+  margin-bottom: 28px;
+}
+.form-group {
+  margin-bottom: 20px;
+}
+.form-group label {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  color: #aaa;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,0,64,0.25);
+  border-radius: 6px;
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #ff0040;
+}
+.waitlist-drive {
+  text-align: center;
+}
+.waitlist-drive p {
+  font-family: 'Rajdhani', sans-serif;
+  color: #aaa;
+  margin-bottom: 12px;
+}
+
+/* ===== SUPPORT PAGE ===== */
+.support-section {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+.support-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+.support-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,0,64,0.2);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+.support-card:hover { border-color: rgba(255,0,64,0.6); }
+.support-card h3 {
+  font-family: 'Orbitron', sans-serif;
+  color: #ff0040;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+.support-card p {
+  font-family: 'Rajdhani', sans-serif;
+  color: #ccc;
+  font-size: 0.92rem;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.support-form h2 {
+  font-family: 'Orbitron', sans-serif;
+  color: #ff0040;
+  margin-bottom: 24px;
+  font-size: 1.1rem;
+}
+
+/* ===== FOOTER ===== */
+.site-footer {
+  text-align: center;
+  padding: 24px;
+  border-top: 1px solid rgba(255,0,64,0.15);
+  font-family: 'Rajdhani', sans-serif;
+  color: #555;
+  font-size: 0.9rem;
+}
+.site-footer a { color: #ff0040; text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }

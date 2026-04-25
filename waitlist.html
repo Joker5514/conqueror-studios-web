@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waitlist | Conqueror Studios</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="multipage.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-logo"><a href="/">⚔️ CONQUEROR STUDIOS</a></div>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/projects">Projects</a></li>
+      <li><a href="/studio">Studio</a></li>
+      <li><a href="/waitlist" class="active">Waitlist</a></li>
+      <li><a href="/support">Support</a></li>
+    </ul>
+  </nav>
+
+  <main class="page-main">
+    <section class="page-hero animate-fade-up">
+      <h1 class="glitch" data-text="JOIN THE WAITLIST">JOIN THE WAITLIST</h1>
+      <p class="hero-sub">Get early access to OrchestrAI Nexus and upcoming Conqueror Studios products.</p>
+    </section>
+
+    <section class="waitlist-form-section animate-fade-up delay-1">
+      <form class="waitlist-form" id="waitlistForm">
+        <div class="form-group">
+          <label for="wl-name">Full Name</label>
+          <input type="text" id="wl-name" name="name" placeholder="Randy Jordan" required />
+        </div>
+        <div class="form-group">
+          <label for="wl-email">Email Address</label>
+          <input type="email" id="wl-email" name="email" placeholder="you@example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="wl-interest">What are you most interested in?</label>
+          <select id="wl-interest" name="interest">
+            <option value="orchestrai">OrchestrAI Nexus</option>
+            <option value="voice">Voice Micro-Survey</option>
+            <option value="gaming">Gaming Platform</option>
+            <option value="education">Education Bot</option>
+            <option value="all">All Products</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="wl-suggestion">Feature Suggestion (optional)</label>
+          <textarea id="wl-suggestion" name="suggestion" rows="4" placeholder="Tell us what you'd love to see..."></textarea>
+        </div>
+        <button type="submit" class="btn-primary">🚀 Join Waitlist</button>
+      </form>
+      <div class="waitlist-drive">
+        <p>Explore project assets and roadmap docs:</p>
+        <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" class="btn-outline" target="_blank" rel="noopener noreferrer">📁 Open Google Drive Folder</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank" rel="noopener noreferrer">📁 Drive</a></p>
+  </footer>
+  <script src="script.js"></script>
+  <script src="multipage.js"></script>
+</body>
+</html>
