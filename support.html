@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support | Conqueror Studios</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-logo"><a href="index.html">⚔️ CONQUEROR STUDIOS</a></div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="studio.html">Studio</a></li>
+      <li><a href="waitlist.html">Waitlist</a></li>
+      <li><a href="support.html" class="active">Support</a></li>
+    </ul>
+  </nav>
+
+  <main class="page-main">
+    <section class="page-hero animate-fade-up">
+      <h1 class="glitch" data-text="SUPPORT">SUPPORT</h1>
+      <p class="hero-sub">Questions, feedback, or want to collaborate? We're here.</p>
+    </section>
+
+    <section class="support-section animate-fade-up delay-1">
+      <div class="support-options">
+        <div class="support-card">
+          <h3>📧 Email</h3>
+          <p>Reach out directly for project inquiries, partnerships, or technical questions.</p>
+          <a href="mailto:contact@conqueror.studio" class="btn-outline">Send Email</a>
+        </div>
+        <div class="support-card">
+          <h3>📁 Drive Resources</h3>
+          <p>Access project documentation, design assets, and roadmap files on Google Drive.</p>
+          <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" class="btn-outline" target="_blank">Open Drive</a>
+        </div>
+        <div class="support-card">
+          <h3>💡 Suggest a Feature</h3>
+          <p>Have an idea? Submit it through the waitlist form and we'll review it.</p>
+          <a href="waitlist.html" class="btn-outline">Go to Waitlist</a>
+        </div>
+      </div>
+
+      <form class="support-form" id="supportForm">
+        <h2>Send a Message</h2>
+        <div class="form-group">
+          <label for="s-name">Name</label>
+          <input type="text" id="s-name" name="name" placeholder="Your name" required />
+        </div>
+        <div class="form-group">
+          <label for="s-email">Email</label>
+          <input type="email" id="s-email" name="email" placeholder="you@example.com" required />
+        </div>
+        <div class="form-group">
+          <label for="s-message">Message</label>
+          <textarea id="s-message" name="message" rows="5" placeholder="What's on your mind?" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary">📨 Send Message</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank">📁 Drive</a></p>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
