@@ -5,6 +5,7 @@
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
         }
       });
     },
@@ -21,6 +22,7 @@
       const rect = el.getBoundingClientRect();
       if (rect.top < window.innerHeight) {
         el.classList.add('visible');
+        observer.unobserve(el);
       }
     });
   }, 100);
