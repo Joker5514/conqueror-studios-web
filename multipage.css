@@ -2,7 +2,7 @@
 
 /* Navbar active state */
 .nav-links a.active {
-  color: #ff0040;
+  color: var(--accent);
   border-bottom: 2px solid #ff0040;
 }
 
