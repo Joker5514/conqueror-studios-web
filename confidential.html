@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confidential | Conqueror Studios</title>
+  <meta name="description" content="This project is currently private and under active development at Conqueror Studios." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="multipage.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    .confidential-wrap {
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 1.5rem;
+      gap: 1.5rem;
+    }
+
+    .lock-icon {
+      font-size: 5rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 18px #c0392b);
+      animation: float-lock 3s ease-in-out infinite;
+    }
+    @keyframes float-lock {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    .confidential-wrap h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2rem, 6vw, 3.8rem);
+      font-weight: 900;
+      color: #ff3333;
+      text-shadow: 0 0 20px rgba(255,50,50,0.6), 0 0 40px rgba(255,50,50,0.3);
+      letter-spacing: 0.08em;
+      margin: 0;
+    }
+
+    .confidential-wrap .sub {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: #aaa;
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    .confidential-wrap .sub strong {
+      color: #e0e0e0;
+    }
+
+    .redacted-bar {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 0.5rem 0;
+    }
+    .redacted-bar span {
+      display: inline-block;
+      background: rgba(255,40,40,0.15);
+      border: 1px solid rgba(255,40,40,0.35);
+      border-radius: 4px;
+      padding: 0.25rem 0.9rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      color: #ff6b6b;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .classify-stamp {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      color: rgba(255,50,50,0.4);
+      border: 2px solid rgba(255,50,50,0.25);
+      border-radius: 4px;
+      padding: 0.3rem 1rem;
+      text-transform: uppercase;
+      transform: rotate(-2deg);
+      margin-top: 0.5rem;
+    }
+
+    .confidential-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-logo"><a href="/">⚔️ CONQUEROR STUDIOS</a></div>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/projects">Projects</a></li>
+      <li><a href="/studio">Studio</a></li>
+      <li><a href="/waitlist">Waitlist</a></li>
+      <li><a href="/support">Support</a></li>
+    </ul>
+  </nav>
+
+  <main class="page-main">
+    <div class="confidential-wrap">
+
+      <div class="lock-icon">🔒</div>
+
+      <h1>CONFIDENTIAL</h1>
+
+      <div class="redacted-bar">
+        <span>Access Restricted</span>
+        <span>Private Repository</span>
+        <span>In Development</span>
+      </div>
+
+      <p class="sub">
+        This project is currently <strong>under active development</strong> and its source code is private.
+        Details will be revealed when it’s ready to ship.
+      </p>
+
+      <p class="sub">
+        Interested in early access, a partnership, or just curious?
+        <strong>Reach out directly</strong> and we’ll be in touch.
+      </p>
+
+      <div class="classify-stamp">Classified &mdash; Conqueror Studios &copy; 2026</div>
+
+      <div class="confidential-actions">
+        <a href="/waitlist" class="btn-primary">🚀 Join the Waitlist</a>
+        <a href="/support" class="btn-outline">✉️ Contact Us</a>
+        <a href="/projects" class="btn-outline">← Back to Projects</a>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 Conqueror Studios · <a href="mailto:r.jordan@conqueror-studios.com">✉️ r.jordan@conqueror-studios.com</a></p>
+    <a href="#top" style="font-size:0.8rem;color:#888;text-decoration:none;margin-top:0.4rem;display:inline-block;" class="back-to-top">↑ Back to top</a>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="multipage.js"></script>
+</body>
+</html>
