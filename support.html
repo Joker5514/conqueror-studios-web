@@ -4,9 +4,62 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Support | Conqueror Studios</title>
+  <meta name="description" content="Contact Conqueror Studios — reach Randy Jordan for project inquiries, partnerships, feature requests, or technical questions." />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="multipage.css" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Support-page extras ── */
+    .response-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255,40,40,0.12);
+      border: 1px solid var(--accent-red, #c0392b);
+      border-radius: 20px;
+      padding: 0.3rem 0.9rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.82rem;
+      color: #ff6b6b;
+      margin-top: 0.75rem;
+      letter-spacing: 0.04em;
+    }
+    .response-badge span.dot {
+      width: 8px; height: 8px;
+      background: #39ff14;
+      border-radius: 50%;
+      animation: pulse-dot 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.4; transform: scale(1.35); }
+    }
+    .support-options { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .support-form select {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      color: #e0e0e0;
+      padding: 0.6rem 0.9rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      margin-top: 0.25rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .support-form select:focus { border-color: var(--accent-red, #c0392b); outline: none; }
+    .support-form select option { background: #1a0a0a; color: #e0e0e0; }
+    .back-to-top {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #888;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-to-top:hover { color: #ff6b6b; }
+  </style>
 </head>
 <body>
   <nav class="navbar">
@@ -20,53 +73,98 @@
     </ul>
   </nav>
 
-  <main class="page-main">
+  <main class="page-main" id="top">
     <section class="page-hero animate-fade-up">
       <h1 class="glitch" data-text="SUPPORT">SUPPORT</h1>
       <p class="hero-sub">Questions, feedback, or want to collaborate? We're here.</p>
+      <div class="response-badge">
+        <span class="dot"></span>
+        Typical response within 24–48 hours
+      </div>
     </section>
 
     <section class="support-section animate-fade-up delay-1">
       <div class="support-options">
+
+        <!-- Email card (updated) -->
         <div class="support-card">
           <h3>📧 Email</h3>
           <p>Reach out directly for project inquiries, partnerships, or technical questions.</p>
-          <a href="mailto:contact@conqueror.studio" class="btn-outline">Send Email</a>
+          <a href="mailto:r.jordan@conqueror-studios.com" class="btn-outline">r.jordan@conqueror-studios.com</a>
         </div>
+
+        <!-- Drive Resources -->
         <div class="support-card">
           <h3>📁 Drive Resources</h3>
           <p>Access project documentation, design assets, and roadmap files on Google Drive.</p>
-          <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" class="btn-outline" target="_blank">Open Drive</a>
+          <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" class="btn-outline" target="_blank" rel="noopener">Open Drive</a>
         </div>
+
+        <!-- Feature Suggestion -->
         <div class="support-card">
           <h3>💡 Suggest a Feature</h3>
           <p>Have an idea? Submit it through the waitlist form and we'll review it.</p>
           <a href="/waitlist" class="btn-outline">Go to Waitlist</a>
         </div>
+
+        <!-- GitHub card -->
+        <div class="support-card">
+          <h3>🐙 GitHub</h3>
+          <p>Browse source code, open issues, or follow along with active development.</p>
+          <a href="https://github.com/Joker5514/conqueror-studios-web" class="btn-outline" target="_blank" rel="noopener">View Repo</a>
+        </div>
+
+        <!-- Social / community card -->
+        <div class="support-card">
+          <h3>🌐 Social</h3>
+          <p>Follow Conqueror Studios for project updates, launch announcements, and behind-the-scenes content.</p>
+          <a href="https://github.com/Joker5514" class="btn-outline" target="_blank" rel="noopener">@Joker5514</a>
+        </div>
+
       </div>
 
+      <!-- Contact form with subject dropdown -->
       <form class="support-form" id="supportForm">
         <h2>Send a Message</h2>
+
         <div class="form-group">
           <label for="s-name">Name</label>
           <input type="text" id="s-name" name="name" placeholder="Your name" required />
         </div>
+
         <div class="form-group">
-          <label for="s-email">Email</label>
+          <label for="s-email">Your Email</label>
           <input type="email" id="s-email" name="email" placeholder="you@example.com" required />
         </div>
+
+        <div class="form-group">
+          <label for="s-subject">Subject</label>
+          <select id="s-subject" name="subject" required>
+            <option value="" disabled selected>Select a topic…</option>
+            <option value="project-inquiry">Project Inquiry</option>
+            <option value="partnership">Partnership / Collaboration</option>
+            <option value="feature-request">Feature Request</option>
+            <option value="bug-report">Bug Report</option>
+            <option value="press">Press / Media</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
         <div class="form-group">
           <label for="s-message">Message</label>
           <textarea id="s-message" name="message" rows="5" placeholder="What's on your mind?" required></textarea>
         </div>
+
         <button type="submit" class="btn-primary">📨 Send Message</button>
       </form>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank">📁 Drive</a></p>
+    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank" rel="noopener">📁 Drive</a> · <a href="mailto:r.jordan@conqueror-studios.com">✉️ Email</a></p>
+    <a href="#top" class="back-to-top">↑ Back to top</a>
   </footer>
+
   <script src="script.js"></script>
   <script src="multipage.js"></script>
 </body>
