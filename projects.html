@@ -4,24 +4,169 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Projects | Conqueror Studios</title>
+  <meta name="description" content="AI systems, voice interfaces, automation tools, and platforms built by Randy Jordan at Conqueror Studios." />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="multipage.css" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
   <style>
-    .private-badge {
+    /* ── Projects page extras ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+      padding: 2rem 1.5rem 4rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .project-card {
+      position: relative;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 1.75rem 1.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      overflow: hidden;
+    }
+    .project-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(192,57,43,0.6);
+      box-shadow: 0 0 28px rgba(192,57,43,0.18);
+    }
+
+    .card-glow {
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 130px; height: 130px;
+      background: radial-gradient(circle, rgba(192,57,43,0.22) 0%, transparent 70%);
+      pointer-events: none;
+      border-radius: 50%;
+    }
+
+    /* Status badge row */
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .status-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.3rem;
-      background: rgba(255,40,40,0.12);
-      border: 1px solid rgba(255,40,40,0.4);
+      gap: 0.35rem;
       border-radius: 20px;
-      padding: 0.2rem 0.65rem;
+      padding: 0.22rem 0.7rem;
       font-family: 'Rajdhani', sans-serif;
       font-size: 0.72rem;
-      color: #ff6b6b;
-      letter-spacing: 0.05em;
+      font-weight: 600;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      margin-bottom: 0.5rem;
+    }
+    .status-badge.private {
+      background: rgba(255,40,40,0.12);
+      border: 1px solid rgba(255,40,40,0.4);
+      color: #ff6b6b;
+    }
+    .status-badge.active {
+      background: rgba(57,255,20,0.1);
+      border: 1px solid rgba(57,255,20,0.35);
+      color: #39ff14;
+    }
+    .status-badge .pulse {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse-dot 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.4; transform:scale(1.4); }
+    }
+    .card-year {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.72rem;
+      color: #555;
+      letter-spacing: 0.05em;
+    }
+
+    .project-card h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f0f0f0;
+      margin: 0;
+      letter-spacing: 0.04em;
+    }
+    .project-card p {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.97rem;
+      color: #999;
+      line-height: 1.6;
+      margin: 0;
+      flex: 1;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .card-tags span {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      padding: 0.18rem 0.55rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.72rem;
+      color: #bbb;
+      letter-spacing: 0.04em;
+    }
+
+    /* Progress bar */
+    .card-progress {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.72rem;
+      color: #666;
+      letter-spacing: 0.04em;
+    }
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #c0392b, #ff6b6b);
+      transition: width 1s ease;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-top: 0.25rem;
+    }
+    .card-actions .btn-outline {
+      font-size: 0.82rem;
+      padding: 0.4rem 0.9rem;
+    }
+    .card-actions .btn-primary {
+      font-size: 0.82rem;
+      padding: 0.4rem 0.9rem;
     }
   </style>
 </head>
@@ -37,7 +182,7 @@
     </ul>
   </nav>
 
-  <main class="page-main">
+  <main class="page-main" id="top">
     <section class="page-hero animate-fade-up">
       <h1 class="glitch" data-text="PROJECTS">PROJECTS</h1>
       <p class="hero-sub">AI systems, voice interfaces, and automation tools built by Randy Jordan.</p>
@@ -45,48 +190,94 @@
 
     <section class="projects-grid animate-fade-up delay-1">
 
+      <!-- OrchestrAI Nexus -->
       <article class="project-card">
         <div class="card-glow"></div>
-        <span class="private-badge">🔒 Private</span>
+        <div class="card-meta">
+          <span class="status-badge active"><span class="pulse"></span> Active Dev</span>
+          <span class="card-year">2025 &ndash; Present</span>
+        </div>
         <h2>OrchestrAI Nexus</h2>
-        <p>Multi-agent AI orchestration platform with dynamic task routing, memory, and plugin extensibility.</p>
-        <div class="card-tags"><span>AI</span><span>Multi-Agent</span><span>Python</span></div>
-        <a href="/confidential" class="btn-outline">🔒 Confidential</a>
+        <p>Multi-agent AI orchestration platform with dynamic task routing, persistent memory, and plugin extensibility.</p>
+        <div class="card-tags"><span>AI</span><span>Multi-Agent</span><span>Python</span><span>LangChain</span></div>
+        <div class="card-progress">
+          <div class="progress-label"><span>Build Progress</span><span>72%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:72%"></div></div>
+        </div>
+        <div class="card-actions">
+          <a href="/confidential" class="btn-outline">🔒 Private Repo</a>
+          <a href="/waitlist" class="btn-primary">🚀 Early Access</a>
+        </div>
       </article>
 
+      <!-- Voice Micro-Survey -->
       <article class="project-card">
         <div class="card-glow"></div>
-        <span class="private-badge">🔒 Private</span>
+        <div class="card-meta">
+          <span class="status-badge active"><span class="pulse"></span> Active Dev</span>
+          <span class="card-year">2026</span>
+        </div>
         <h2>Voice Micro-Survey</h2>
         <p>Voice-first survey tool capturing user sentiment through real-time speech analysis and NLP pipelines.</p>
-        <div class="card-tags"><span>Voice</span><span>NLP</span><span>Node.js</span></div>
-        <a href="/confidential" class="btn-outline">🔒 Confidential</a>
+        <div class="card-tags"><span>Voice</span><span>NLP</span><span>Node.js</span><span>WebRTC</span></div>
+        <div class="card-progress">
+          <div class="progress-label"><span>Build Progress</span><span>48%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:48%"></div></div>
+        </div>
+        <div class="card-actions">
+          <a href="/confidential" class="btn-outline">🔒 Private Repo</a>
+          <a href="/waitlist" class="btn-primary">🚀 Early Access</a>
+        </div>
       </article>
 
+      <!-- Gaming Social Platform -->
       <article class="project-card">
         <div class="card-glow"></div>
-        <span class="private-badge">🔒 Private</span>
+        <div class="card-meta">
+          <span class="status-badge private">🔒 Private</span>
+          <span class="card-year">2026</span>
+        </div>
         <h2>Gaming Social Platform</h2>
         <p>Community-first gaming hub with AI-powered matchmaking, leaderboards, and social features.</p>
-        <div class="card-tags"><span>Gaming</span><span>React</span><span>Firebase</span></div>
-        <a href="/confidential" class="btn-outline">🔒 Confidential</a>
+        <div class="card-tags"><span>Gaming</span><span>React</span><span>Firebase</span><span>AI</span></div>
+        <div class="card-progress">
+          <div class="progress-label"><span>Build Progress</span><span>35%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:35%"></div></div>
+        </div>
+        <div class="card-actions">
+          <a href="/confidential" class="btn-outline">🔒 Private Repo</a>
+          <a href="/waitlist" class="btn-primary">🚀 Early Access</a>
+        </div>
       </article>
 
+      <!-- Education Bot -->
       <article class="project-card">
         <div class="card-glow"></div>
-        <span class="private-badge">🔒 Private</span>
+        <div class="card-meta">
+          <span class="status-badge private">🔒 Private</span>
+          <span class="card-year">2026</span>
+        </div>
         <h2>Education Bot</h2>
         <p>Adaptive learning assistant that personalizes curriculum delivery using LLM reasoning and student profiling.</p>
-        <div class="card-tags"><span>EdTech</span><span>LLM</span><span>Next.js</span></div>
-        <a href="/confidential" class="btn-outline">🔒 Confidential</a>
+        <div class="card-tags"><span>EdTech</span><span>LLM</span><span>Next.js</span><span>OpenAI</span></div>
+        <div class="card-progress">
+          <div class="progress-label"><span>Build Progress</span><span>55%</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:55%"></div></div>
+        </div>
+        <div class="card-actions">
+          <a href="/confidential" class="btn-outline">🔒 Private Repo</a>
+          <a href="/waitlist" class="btn-primary">🚀 Early Access</a>
+        </div>
       </article>
 
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank">📁 Drive</a></p>
+    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank" rel="noopener">📁 Drive</a> · <a href="mailto:r.jordan@conqueror-studios.com">✉️ Email</a></p>
+    <a href="#top" style="font-size:0.8rem;color:#888;text-decoration:none;margin-top:0.4rem;display:inline-block;">↑ Back to top</a>
   </footer>
+
   <script src="script.js"></script>
   <script src="multipage.js"></script>
 </body>
