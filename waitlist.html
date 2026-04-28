@@ -4,65 +4,130 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Waitlist | Conqueror Studios</title>
+  <meta name="description" content="Join the waitlist for early access to Conqueror Studios AI experiments — OrchestrAI Nexus, VoiceIsolate Pro, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="multipage.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    .page-hero { padding: 88px 0 56px; text-align: center; }
+    .page-hero h1 {
+      font-size: clamp(32px, 5vw, 64px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin: 12px 0 16px;
+      text-shadow: 0 0 60px rgba(255,34,68,0.18);
+      line-height: 1.08;
+    }
+  </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-logo"><a href="/">⚔️ CONQUEROR STUDIOS</a></div>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/projects">Projects</a></li>
-      <li><a href="/studio">Studio</a></li>
-      <li><a href="/waitlist" class="active">Waitlist</a></li>
-      <li><a href="/support">Support</a></li>
-    </ul>
-  </nav>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow glow-1" aria-hidden="true"></div>
+  <div class="bg-glow glow-2" aria-hidden="true"></div>
 
-  <main class="page-main">
-    <section class="page-hero animate-fade-up">
-      <h1 class="glitch" data-text="JOIN THE WAITLIST">JOIN THE WAITLIST</h1>
-      <p class="hero-sub">Get early access to OrchestrAI Nexus and upcoming Conqueror Studios products.</p>
-    </section>
+  <header class="site-header" role="banner">
+    <div class="container nav-wrap">
+      <a href="/" class="brand" aria-label="Conqueror Studios home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span class="brand-text">Conqueror Studios</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav" role="navigation" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/projects">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="/waitlist" class="active">Waitlist</a>
+        <a href="/support">Support</a>
+      </nav>
+    </div>
+  </header>
 
-    <section class="waitlist-form-section animate-fade-up delay-1">
-      <form class="waitlist-form" id="waitlistForm">
-        <div class="form-group">
-          <label for="wl-name">Full Name</label>
-          <input type="text" id="wl-name" name="name" placeholder="Randy Jordan" required />
-        </div>
-        <div class="form-group">
-          <label for="wl-email">Email Address</label>
-          <input type="email" id="wl-email" name="email" placeholder="you@example.com" required />
-        </div>
-        <div class="form-group">
-          <label for="wl-interest">What are you most interested in?</label>
-          <select id="wl-interest" name="interest">
-            <option value="orchestrai">OrchestrAI Nexus</option>
-            <option value="voice">Voice Micro-Survey</option>
-            <option value="gaming">Gaming Platform</option>
-            <option value="education">Education Bot</option>
-            <option value="all">All Products</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="wl-suggestion">Feature Suggestion (optional)</label>
-          <textarea id="wl-suggestion" name="suggestion" rows="4" placeholder="Tell us what you'd love to see..."></textarea>
-        </div>
-        <button type="submit" class="btn-primary">🚀 Join Waitlist</button>
-      </form>
-      <div class="waitlist-drive">
-        <p>Explore project assets and roadmap docs:</p>
-        <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" class="btn-outline" target="_blank" rel="noopener noreferrer">📁 Open Google Drive Folder</a>
+  <main id="main-content">
+
+    <!-- PAGE HERO -->
+    <section class="page-hero" aria-labelledby="page-heading">
+      <div class="container">
+        <span class="eyebrow">Early Access</span>
+        <h1 id="page-heading">Get early access &amp; lab updates</h1>
+        <p class="hero-text" style="max-width:560px;margin:0 auto;">
+          Join the first wave of users, testers, and research collaborators for Conqueror Studios experiments.
+        </p>
       </div>
     </section>
+
+    <!-- WAITLIST FORM -->
+    <section class="section form-section" id="waitlist" aria-labelledby="waitlist-heading">
+      <div class="container form-layout">
+        <div class="section-heading reveal" style="text-align:left;margin:0;">
+          <span class="eyebrow">Waitlist</span>
+          <h2 id="waitlist-heading">Reserve your spot</h2>
+          <p>We'll notify you before any experiment goes live. No spam — just signal when something ships.</p>
+        </div>
+        <form class="glass-form reveal delay-1" id="waitlistForm" novalidate>
+          <label>Name<input type="text" name="name" placeholder="Your name" required autocomplete="name" /></label>
+          <label>Email<input type="email" name="email" placeholder="you@example.com" required autocomplete="email" /></label>
+          <label>
+            Which experiment are you following?
+            <select name="interest" required>
+              <option value="">Select an experiment</option>
+              <option>AI Bridge — Federated agentic workbench</option>
+              <option>OrchestrAI Nexus — Agent coordination layer</option>
+              <option>VoiceIsolate Pro — Real-time voice isolation</option>
+              <option>AI Counselor Dashboard</option>
+              <option>OrchestrAI Music Studio</option>
+              <option>Voice Micro-Surveys</option>
+              <option>Love-Me-Not — Forensic psychology app</option>
+              <option>DetectiveIQ — Analyst training platform</option>
+              <option>Adaptive Education Bots</option>
+              <option>All upcoming experiments</option>
+            </select>
+          </label>
+          <button type="submit" class="btn btn-primary full">Join the waitlist</button>
+          <p class="form-message" id="waitlistMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- SUGGEST / OPEN QUESTIONS -->
+    <section class="section form-section alt" id="suggest" aria-labelledby="suggest-heading">
+      <div class="container form-layout">
+        <div class="section-heading reveal" style="text-align:left;margin:0;">
+          <span class="eyebrow">Open Questions</span>
+          <h2 id="suggest-heading">Tell us what to study next</h2>
+          <p>We keep a backlog of open questions about orchestration, evaluation, and voice interfaces. If your system overlaps, we probably want to collaborate.</p>
+        </div>
+        <form class="glass-form reveal delay-1" id="suggestionForm" novalidate>
+          <label>Name<input type="text" name="name" placeholder="Optional" autocomplete="name" /></label>
+          <label>Email<input type="email" name="email" placeholder="Optional" autocomplete="email" /></label>
+          <label>
+            What system or constraint are you studying?
+            <textarea name="suggestion" rows="5" placeholder="Describe the behavior, failure mode, or open question you want to explore" required></textarea>
+          </label>
+          <button type="submit" class="btn btn-secondary full">Submit to the lab queue</button>
+          <p class="form-message" id="suggestionMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
   </main>
 
-  <footer class="site-footer">
-    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank" rel="noopener noreferrer">📁 Drive</a></p>
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-wrap">
+      <p>&copy; 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
+      <div class="footer-links">
+        <a href="/projects">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
+        <a href="mailto:hello@conquerorstudios.dev">Email</a>
+        <a href="#main-content">Back to top &uarr;</a>
+      </div>
+    </div>
   </footer>
+
   <script src="script.js"></script>
-  <script src="multipage.js"></script>
 </body>
 </html>

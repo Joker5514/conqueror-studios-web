@@ -42,23 +42,39 @@ function animateCounter(el) {
 const sections = document.querySelectorAll('section[id]');
 const navLinks = document.querySelectorAll('.site-nav a');
 
-const navObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        navLinks.forEach(link => {
-          link.classList.remove('active');
-          if (link.getAttribute('href') === '#' + entry.target.id) {
-            link.classList.add('active');
-          }
-        });
-      }
-    });
-  },
-  { rootMargin: '-30% 0px -60% 0px' }
-);
+// Path-based active state for multi-page navigation
+const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+navLinks.forEach(link => {
+  const href = link.getAttribute('href');
+  if (href && !href.startsWith('#')) {
+    const linkPath = href.replace(/\/$/, '') || '/';
+    if (linkPath === currentPath) link.classList.add('active');
+  }
+});
 
-sections.forEach(sec => navObserver.observe(sec));
+// Anchor-based scrollspy only when nav has anchor links (single-page mode)
+const hasAnchorNav = Array.from(navLinks).some(a => (a.getAttribute('href') || '').startsWith('#'));
+if (hasAnchorNav) {
+  const navObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + entry.target.id) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    },
+    { rootMargin: '-30% 0px -60% 0px' }
+  );
+  sections.forEach(sec => navObserver.observe(sec));
+}
+
+// Support contact form handler
+handleForm('contactForm', 'contactMessage', '✓ Message received. We’ll be in touch within 24 hours.');
 
 // ── Mobile menu ───────────────────────────────────────────
 const toggle = document.getElementById('menuToggle');

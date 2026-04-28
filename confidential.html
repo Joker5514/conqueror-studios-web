@@ -6,9 +6,10 @@
   <title>Confidential | Conqueror Studios</title>
   <meta name="description" content="This project is currently private and under active development at Conqueror Studios." />
   <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="multipage.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
   <style>
     .confidential-wrap {
       min-height: 70vh;
@@ -97,18 +98,31 @@
   </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-logo"><a href="/">⚔️ CONQUEROR STUDIOS</a></div>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/projects">Projects</a></li>
-      <li><a href="/studio">Studio</a></li>
-      <li><a href="/waitlist">Waitlist</a></li>
-      <li><a href="/support">Support</a></li>
-    </ul>
-  </nav>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow glow-1" aria-hidden="true"></div>
+  <div class="bg-glow glow-2" aria-hidden="true"></div>
 
-  <main class="page-main">
+  <header class="site-header" role="banner">
+    <div class="container nav-wrap">
+      <a href="/" class="brand" aria-label="Conqueror Studios home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span class="brand-text">Conqueror Studios</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav" role="navigation" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/projects">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="/waitlist">Waitlist</a>
+        <a href="/support">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
     <div class="confidential-wrap">
 
       <div class="lock-icon">🔒</div>
@@ -134,20 +148,27 @@
       <div class="classify-stamp">Classified &mdash; Conqueror Studios &copy; 2026</div>
 
       <div class="confidential-actions">
-        <a href="/waitlist" class="btn-primary">🚀 Join the Waitlist</a>
-        <a href="/support" class="btn-outline">✉️ Contact Us</a>
-        <a href="/projects" class="btn-outline">← Back to Projects</a>
+        <a href="/waitlist" class="btn btn-primary">Join the Waitlist</a>
+        <a href="/support" class="btn btn-secondary">Contact Us</a>
+        <a href="/projects" class="btn btn-secondary">&larr; Back to Projects</a>
       </div>
 
     </div>
   </main>
 
-  <footer class="site-footer">
-    <p>© 2026 Conqueror Studios · <a href="mailto:r.jordan@conqueror-studios.com">✉️ r.jordan@conqueror-studios.com</a></p>
-    <a href="#top" style="font-size:0.8rem;color:#888;text-decoration:none;margin-top:0.4rem;display:inline-block;" class="back-to-top">↑ Back to top</a>
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-wrap">
+      <p>&copy; 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
+      <div class="footer-links">
+        <a href="/projects">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
+        <a href="mailto:hello@conquerorstudios.dev">Email</a>
+        <a href="#main-content">Back to top &uarr;</a>
+      </div>
+    </div>
   </footer>
 
   <script src="script.js"></script>
-  <script src="multipage.js"></script>
 </body>
 </html>
