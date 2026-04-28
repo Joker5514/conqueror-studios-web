@@ -3,7 +3,7 @@
 ## The Central Brain for Agentic Intelligence
 OrchestrAI Nexus is a unified platform designed to coordinate specialized AI agents into high-impact workflows. By centralizing routing and maintaining a shared context, Nexus transforms fragmented tools into a cohesive agentic ecosystem.
 
-![OrchestrAI Hero](/home/ubuntu/orchestrai_hero.png)
+![OrchestrAI Hero](/assets/orchestrai_hero.png)
 
 ---
 
@@ -16,14 +16,14 @@ Today's AI landscape is highly fragmented, with over 50 specialized agents opera
 | **Manual Hand-offs** | High friction and user effort to bridge tools. |
 | **Context Loss** | Valuable insights are lost during tool switching. |
 
-![Fragmentation Problem](/home/ubuntu/fragmentation_problem.png)
+![Fragmentation Problem](/assets/fragmentation_problem.png)
 
 ---
 
 ## Introducing OrchestrAI Nexus: The Ultimate Orchestrator
 OrchestrAI Nexus serves as the central hub for agentic intelligence, providing intelligent routing, unified memory, and seamless execution. It bridges the gap between planning and production by integrating directly with your existing software stack.
 
-![Nexus Dashboard](/home/ubuntu/nexus_dashboard.png)
+![Nexus Dashboard](/assets/nexus_dashboard.png)
 
 ---
 

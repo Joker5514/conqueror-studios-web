@@ -3,7 +3,7 @@
 ## Redefining the Boundaries of Vocal Clarity
 VoiceIsolate Pro is a professional-grade tool designed for audio engineers and enthusiasts who demand perfection. Our platform leverages cutting-edge AI to deliver unmatched precision in voice extraction and enhancement.
 
-![VoiceIsolate Hero](/home/ubuntu/voiceisolate_hero.png)
+![VoiceIsolate Hero](/assets/voiceisolate_hero.png)
 
 ---
 
@@ -21,7 +21,7 @@ Background noise ruins approximately 40% of field recordings, and traditional fi
 ## Introducing VoiceIsolate Pro: The Ultimate Isolation Engine
 Powered by our proprietary Neural-Sync™ AI technology, VoiceIsolate Pro is designed for both Web and Mobile platforms. It offers a seamless integration into your professional workflow, whether you are in the studio or on the go.
 
-![App Mockup](/home/ubuntu/app_mockup.png)
+![App Mockup](/assets/app_mockup.png)
 
 ---
 
@@ -35,7 +35,7 @@ Our engine allows you to extract vocals from music, movies, or field recordings 
 ## Hear the Impossible: The Whisper in the Club
 Experience crystal clear voices even in the most extreme environments, such as a whisper in a crowded club. Our technology eliminates 99.9% of non-vocal frequencies and provides an intelligibility boost that enhances low-volume speech without introducing distortion.
 
-![Whisper in Club](/home/ubuntu/whisper_club.png)
+![Whisper in Club](/assets/whisper_club.png)
 
 ---
 
