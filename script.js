@@ -74,7 +74,7 @@ if (hasAnchorNav) {
 }
 
 // Support contact form handler
-handleForm(‘contactForm’, ‘contactMessage’, ‘✓ Message received. We’ll be in touch within 24 hours.’);
+handleForm('contactForm', 'contactMessage', '✓ Message received. We’ll be in touch within 24 hours.');
 
 // ── Mobile menu ───────────────────────────────────────────
 const toggle = document.getElementById('menuToggle');
