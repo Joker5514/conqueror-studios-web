@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoiceIsolate Pro | Conqueror Studios</title>
+  <meta name="description" content="VoiceIsolate Pro — professional-grade AI voice isolation and audio enhancement. Neural-Sync™ technology for audio engineers, podcasters, and forensic experts." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Product hero ── */
+    .product-hero {
+      padding: 64px 0 0;
+      text-align: center;
+    }
+    .product-hero h1 {
+      font-size: clamp(32px, 5vw, 60px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin: 12px 0 20px;
+      text-shadow: 0 0 60px rgba(255,34,68,0.20);
+      line-height: 1.08;
+    }
+    .product-hero-img {
+      width: 100%;
+      max-width: 1100px;
+      margin: 40px auto 0;
+      display: block;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.4), 0 0 60px rgba(255,34,68,0.08);
+    }
+
+    /* ── Slides ── */
+    .slide { padding: 80px 0; }
+    .slide:nth-child(even) { background: var(--surface); }
+    .slide-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .slide-inner.reversed { direction: rtl; }
+    .slide-inner.reversed > * { direction: ltr; }
+    @media (max-width: 860px) {
+      .slide-inner, .slide-inner.reversed { grid-template-columns: 1fr; direction: ltr; }
+    }
+    .slide-inner img {
+      width: 100%;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.35);
+    }
+    .slide-copy h2 {
+      font-size: clamp(22px, 2.8vw, 36px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin-bottom: 16px;
+      line-height: 1.15;
+    }
+    .slide-copy p { font-size: 15px; color: var(--text-dim); line-height: 1.8; margin-bottom: 14px; }
+    .slide-copy blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 16px;
+      margin: 20px 0;
+      font-size: 15px;
+      color: var(--text);
+      font-style: italic;
+    }
+
+    /* ── Comparison table ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+    .compare-table th {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent);
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table td:first-child { color: var(--text-bright); font-weight: 600; }
+
+    /* ── Feature bullets ── */
+    .feature-bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+    .feature-bullets li {
+      font-size: 14px;
+      color: var(--text-dim);
+      padding-left: 20px;
+      position: relative;
+    }
+    .feature-bullets li::before { content: '\2192'; position: absolute; left: 0; color: var(--accent); }
+    .feature-bullets strong { color: var(--text-bright); }
+
+    /* ── CTA ── */
+    .product-cta {
+      padding: 80px 0;
+      text-align: center;
+      background: linear-gradient(180deg, var(--surface), var(--bg));
+    }
+    .product-cta h2 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin-bottom: 16px;
+      text-shadow: 0 0 40px rgba(255,34,68,0.15);
+    }
+    .product-cta p { font-size: 16px; color: var(--text-dim); max-width: 500px; margin: 0 auto 32px; }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Use cases grid ── */
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 32px;
+    }
+    .use-case-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color .25s;
+    }
+    .use-case-card:hover { border-color: var(--border-hover); }
+    .use-case-card h4 { font-size: 14px; font-weight: 700; color: var(--text-bright); margin-bottom: 8px; }
+    .use-case-card p { font-size: 13px; color: var(--text-dim); line-height: 1.65; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow glow-1" aria-hidden="true"></div>
+  <div class="bg-glow glow-2" aria-hidden="true"></div>
+
+  <header class="site-header" role="banner">
+    <div class="container nav-wrap">
+      <a href="/" class="brand" aria-label="Conqueror Studios home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span class="brand-text">Conqueror Studios</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav" role="navigation" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/projects" class="active">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="/waitlist">Waitlist</a>
+        <a href="/support">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- PRODUCT HERO -->
+    <section class="product-hero" aria-labelledby="product-heading">
+      <div class="container">
+        <span class="eyebrow">Audio AI · Voice UX · Research</span>
+        <h1 id="product-heading">VoiceIsolate Pro</h1>
+        <p class="hero-text" style="max-width:620px;margin:0 auto 12px;">
+          Redefining the boundaries of vocal clarity. Professional-grade AI voice isolation powered by Neural-Sync&trade; technology — for audio engineers, podcasters, and forensic experts who demand perfection.
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:24px 0 0;">
+          <a href="https://github.com/Joker5514/VoiceIsolate-Pro" target="_blank" rel="noreferrer noopener" class="btn btn-primary">View on GitHub &rarr;</a>
+          <a href="/waitlist" class="btn btn-secondary">Join Waitlist</a>
+        </div>
+      </div>
+      <img src="/assets/voiceisolate_hero.png" alt="VoiceIsolate Pro — AI-powered voice isolation" class="product-hero-img" />
+    </section>
+
+    <!-- THE PROBLEM -->
+    <section class="slide" id="problem" aria-labelledby="problem-heading" style="background:var(--surface);">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">The Problem</span>
+          <h2 id="problem-heading">The audio engineer's nightmare</h2>
+          <p>Background noise ruins approximately 40% of field recordings, and traditional filters often "thin out" the voice, leading to a loss of natural character.</p>
+        </div>
+        <div class="reveal" style="max-width:720px;margin:0 auto;">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Challenge</th>
+                <th>Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Background Noise</td><td>Compromises recording quality and intelligibility.</td></tr>
+              <tr><td>Traditional Filtering</td><td>Often introduces artifacts and degrades vocal warmth.</td></tr>
+              <tr><td>Chaotic Environments</td><td>Makes dialogue isolation nearly impossible without advanced tools.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- APP MOCKUP SLIDE -->
+    <section class="slide" id="app" aria-labelledby="app-heading">
+      <div class="slide-inner">
+        <img src="/assets/app_mockup.png" alt="VoiceIsolate Pro app mockup — web and mobile interface" class="reveal" />
+        <div class="slide-copy reveal delay-1">
+          <span class="eyebrow">The Platform</span>
+          <h2 id="app-heading">The ultimate isolation engine</h2>
+          <p>Powered by our proprietary Neural-Sync&trade; AI technology, VoiceIsolate Pro is designed for both Web and Mobile platforms. It offers seamless integration into your professional workflow, whether you are in the studio or on the go.</p>
+          <ul class="feature-bullets">
+            <li><strong>Complete Voice Extraction</strong> — Extract vocals from music, movies, or field recordings with zero artifacts.</li>
+            <li><strong>Universal Format Support</strong> — All major audio and video formats supported.</li>
+            <li><strong>Cloud Sync</strong> — Start on mobile, finish on your professional workstation.</li>
+            <li><strong>Privacy Encryption</strong> — Enterprise-grade security for all processing.</li>
+          </ul>
+          <blockquote>
+            "The precision of VoiceIsolate Pro is unlike anything I've used in twenty years of post-production." — Senior Audio Engineer
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHISPER IN THE CLUB -->
+    <section class="slide" id="whisper" aria-labelledby="whisper-heading" style="background:var(--surface);">
+      <div class="slide-inner reversed">
+        <div class="slide-copy reveal">
+          <span class="eyebrow">Extreme Clarity</span>
+          <h2 id="whisper-heading">Hear the whisper in the club</h2>
+          <p>Experience crystal clear voices even in the most extreme environments. Our technology eliminates 99.9% of non-vocal frequencies and provides an intelligibility boost that enhances low-volume speech without introducing distortion.</p>
+          <table class="compare-table" style="margin-top:16px;">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>VoiceIsolate Pro</th>
+                <th>Competitors</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Reconstruction AI</td><td style="color:var(--success);">Yes</td><td>No (Filter-based)</td></tr>
+              <tr><td>Whisper Isolation</td><td style="color:var(--success);">High Precision</td><td>Low / Moderate</td></tr>
+              <tr><td>Privacy Encryption</td><td style="color:var(--success);">Enterprise Grade</td><td>Standard</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <img src="/assets/whisper_club.png" alt="VoiceIsolate Pro — whisper isolation in crowded club environment" class="reveal delay-1" />
+      </div>
+    </section>
+
+    <!-- USE CASES -->
+    <section class="slide" id="use-cases" aria-labelledby="use-cases-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Use Cases</span>
+          <h2 id="use-cases-heading">Built for the enthusiast &amp; professional</h2>
+          <p>VoiceIsolate Pro offers versatility across multiple industries, from music production and film post-production to forensic audio and podcasting.</p>
+        </div>
+        <div class="use-cases-grid">
+          <div class="use-case-card reveal">
+            <h4>Music Production</h4>
+            <p>Clean stems for remixes and sampling. Extract perfect vocal tracks from any source material.</p>
+          </div>
+          <div class="use-case-card reveal delay-1">
+            <h4>Film &amp; TV</h4>
+            <p>Dialogue cleanup for location shoots. Rescue compromised field recordings in post-production.</p>
+          </div>
+          <div class="use-case-card reveal delay-2">
+            <h4>Forensic Audio</h4>
+            <p>Extracting evidence from low-quality audio. Trusted by forensic experts for critical analysis.</p>
+          </div>
+          <div class="use-case-card reveal delay-3">
+            <h4>Podcasting</h4>
+            <p>Professional studio-quality sound from any location, any microphone, any environment.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="product-cta" aria-labelledby="cta-heading">
+      <div class="container">
+        <span class="eyebrow">Silence the Noise. Hear the Voice.</span>
+        <h2 id="cta-heading">Join 50,000+ audio professionals</h2>
+        <p>Download the app or join the waitlist to start your journey toward perfect vocal clarity.</p>
+        <div class="cta-actions">
+          <a href="https://github.com/Joker5514/VoiceIsolate-Pro" target="_blank" rel="noreferrer noopener" class="btn btn-primary">View on GitHub &rarr;</a>
+          <a href="/waitlist" class="btn btn-secondary">Get Early Access</a>
+          <a href="/projects" class="btn btn-secondary">&larr; All Projects</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-wrap">
+      <p>&copy; 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
+      <div class="footer-links">
+        <a href="/projects">Projects</a>
+        <a href="/orchestrai">OrchestrAI Nexus</a>
+        <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
+        <a href="mailto:hello@conquerorstudios.dev">Email</a>
+        <a href="#main-content">Back to top &uarr;</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -4,281 +4,451 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Projects | Conqueror Studios</title>
-  <meta name="description" content="AI systems, voice interfaces, automation tools, and platforms built by Randy Jordan at Conqueror Studios." />
+  <meta name="description" content="AI systems, voice interfaces, automation tools, and platforms built by Conqueror Studios — 48 repositories across multi-agent orchestration, voice AI, and autonomous workflows." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="multipage.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
   <style>
-    /* ── Projects page extras ── */
-    .projects-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2rem;
-      padding: 2rem 1.5rem 4rem;
-      max-width: 1200px;
-      margin: 0 auto;
+    .page-hero { padding: 88px 0 56px; text-align: center; }
+    .page-hero h1 {
+      font-size: clamp(32px, 5vw, 64px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin: 12px 0 16px;
+      text-shadow: 0 0 60px rgba(255,34,68,0.18);
+      line-height: 1.08;
     }
-
-    .project-card {
-      position: relative;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 1.75rem 1.5rem 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-      overflow: hidden;
-    }
-    .project-card:hover {
-      transform: translateY(-6px);
-      border-color: rgba(192,57,43,0.6);
-      box-shadow: 0 0 28px rgba(192,57,43,0.18);
-    }
-
-    .card-glow {
-      position: absolute;
-      top: -40px; right: -40px;
-      width: 130px; height: 130px;
-      background: radial-gradient(circle, rgba(192,57,43,0.22) 0%, transparent 70%);
-      pointer-events: none;
-      border-radius: 50%;
-    }
-
-    /* Status badge row */
-    .card-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-    }
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      border-radius: 20px;
-      padding: 0.22rem 0.7rem;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-    .status-badge.private {
-      background: rgba(255,40,40,0.12);
-      border: 1px solid rgba(255,40,40,0.4);
-      color: #ff6b6b;
-    }
-    .status-badge.active {
-      background: rgba(57,255,20,0.1);
-      border: 1px solid rgba(57,255,20,0.35);
-      color: #39ff14;
-    }
-    .status-badge .pulse {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: currentColor;
-      animation: pulse-dot 1.6s ease-in-out infinite;
-    }
-    @keyframes pulse-dot {
-      0%,100% { opacity:1; transform:scale(1); }
-      50%      { opacity:0.4; transform:scale(1.4); }
-    }
-    .card-year {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.72rem;
-      color: #555;
-      letter-spacing: 0.05em;
-    }
-
-    .project-card h2 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #f0f0f0;
-      margin: 0;
-      letter-spacing: 0.04em;
-    }
-    .project-card p {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.97rem;
-      color: #999;
-      line-height: 1.6;
-      margin: 0;
-      flex: 1;
-    }
-
-    .card-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-    }
-    .card-tags span {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 4px;
-      padding: 0.18rem 0.55rem;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.72rem;
-      color: #bbb;
-      letter-spacing: 0.04em;
-    }
-
-    /* Progress bar */
-    .card-progress {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-    .progress-label {
-      display: flex;
-      justify-content: space-between;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.72rem;
-      color: #666;
-      letter-spacing: 0.04em;
-    }
-    .progress-track {
+    .project-image {
       width: 100%;
-      height: 4px;
-      background: rgba(255,255,255,0.07);
-      border-radius: 99px;
-      overflow: hidden;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      display: block;
     }
-    .progress-fill {
-      height: 100%;
-      border-radius: 99px;
-      background: linear-gradient(90deg, #c0392b, #ff6b6b);
-      transition: width 1s ease;
-    }
-
-    .card-actions {
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-      margin-top: 0.25rem;
-    }
-    .card-actions .btn-outline {
-      font-size: 0.82rem;
-      padding: 0.4rem 0.9rem;
-    }
-    .card-actions .btn-primary {
-      font-size: 0.82rem;
-      padding: 0.4rem 0.9rem;
-    }
+    .project-card-detail { cursor: pointer; text-decoration: none; color: inherit; }
+    .project-card-detail:hover { text-decoration: none; }
+    .view-all-cta { text-align: center; margin-top: 40px; }
   </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-logo"><a href="/">⚔️ CONQUEROR STUDIOS</a></div>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/projects" class="active">Projects</a></li>
-      <li><a href="/studio">Studio</a></li>
-      <li><a href="/waitlist">Waitlist</a></li>
-      <li><a href="/support">Support</a></li>
-    </ul>
-  </nav>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow glow-1" aria-hidden="true"></div>
+  <div class="bg-glow glow-2" aria-hidden="true"></div>
 
-  <main class="page-main" id="top">
-    <section class="page-hero animate-fade-up">
-      <h1 class="glitch" data-text="PROJECTS">PROJECTS</h1>
-      <p class="hero-sub">AI systems, voice interfaces, and automation tools built by Randy Jordan.</p>
+  <header class="site-header" role="banner">
+    <div class="container nav-wrap">
+      <a href="/" class="brand" aria-label="Conqueror Studios home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span class="brand-text">Conqueror Studios</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav" role="navigation" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/projects" class="active">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="/waitlist">Waitlist</a>
+        <a href="/support">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- PAGE HERO -->
+    <section class="page-hero" aria-labelledby="page-heading">
+      <div class="container">
+        <span class="eyebrow">Full Portfolio</span>
+        <h1 id="page-heading">Every experiment in the lab</h1>
+        <p class="hero-text" style="max-width:620px;margin:0 auto;">
+          48 repositories spanning multi-agent systems, voice AI, autonomous workflows, device control, forensic tools, education bots, and gaming platforms.
+        </p>
+      </div>
     </section>
 
-    <section class="projects-grid animate-fade-up delay-1">
+    <!-- FLAGSHIP EXPERIMENTS -->
+    <section class="section" id="experiments" aria-labelledby="experiments-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Flagship Experiments</span>
+          <h2 id="experiments-heading">Core systems we're building</h2>
+          <p>Every project is framed as a question, built as the smallest testable system, and instrumented so behavior is observable — not guessed at.</p>
+        </div>
 
-      <!-- OrchestrAI Nexus -->
-      <article class="project-card">
-        <div class="card-glow"></div>
-        <div class="card-meta">
-          <span class="status-badge active"><span class="pulse"></span> Active Dev</span>
-          <span class="card-year">2025 &ndash; Present</span>
-        </div>
-        <h2>OrchestrAI Nexus</h2>
-        <p>Multi-agent AI orchestration platform with dynamic task routing, persistent memory, and plugin extensibility.</p>
-        <div class="card-tags"><span>AI</span><span>Multi-Agent</span><span>Python</span><span>LangChain</span></div>
-        <div class="card-progress">
-          <div class="progress-label"><span>Build Progress</span><span>72%</span></div>
-          <div class="progress-track"><div class="progress-fill" style="width:72%"></div></div>
-        </div>
-        <div class="card-actions">
-          <a href="/confidential" class="btn-outline">🔒 Private Repo</a>
-          <a href="/waitlist" class="btn-primary">🚀 Early Access</a>
-        </div>
-      </article>
+        <div class="project-grid">
 
-      <!-- Voice Micro-Survey -->
-      <article class="project-card">
-        <div class="card-glow"></div>
-        <div class="card-meta">
-          <span class="status-badge active"><span class="pulse"></span> Active Dev</span>
-          <span class="card-year">2026</span>
-        </div>
-        <h2>Voice Micro-Survey</h2>
-        <p>Voice-first survey tool capturing user sentiment through real-time speech analysis and NLP pipelines.</p>
-        <div class="card-tags"><span>Voice</span><span>NLP</span><span>Node.js</span><span>WebRTC</span></div>
-        <div class="card-progress">
-          <div class="progress-label"><span>Build Progress</span><span>48%</span></div>
-          <div class="progress-track"><div class="progress-fill" style="width:48%"></div></div>
-        </div>
-        <div class="card-actions">
-          <a href="/confidential" class="btn-outline">🔒 Private Repo</a>
-          <a href="/waitlist" class="btn-primary">🚀 Early Access</a>
-        </div>
-      </article>
+          <!-- OrchestrAI Nexus -->
+          <a href="/orchestrai" class="project-card project-card-detail reveal" aria-label="OrchestrAI Nexus — view project">
+            <img src="/assets/orchestrai_hero.png" alt="OrchestrAI Nexus hero" class="project-image" />
+            <div class="card-top">
+              <span class="tag">Multi-Agent · Orchestration</span>
+              <span class="status status--flagship">Flagship</span>
+            </div>
+            <h3>OrchestrAI Nexus</h3>
+            <p>Advanced AI orchestration framework with multi-agent collaboration, quantum-inspired routing, and ethical governance. The central hub for agentic intelligence.</p>
+            <div class="card-meta">
+              <span class="chip">Python</span><span class="chip">Multi-agent topologies</span><span class="chip">Eval pipelines</span>
+            </div>
+            <span class="card-link">View project details &rarr;</span>
+          </a>
 
-      <!-- Gaming Social Platform -->
-      <article class="project-card">
-        <div class="card-glow"></div>
-        <div class="card-meta">
-          <span class="status-badge private">🔒 Private</span>
-          <span class="card-year">2026</span>
-        </div>
-        <h2>Gaming Social Platform</h2>
-        <p>Community-first gaming hub with AI-powered matchmaking, leaderboards, and social features.</p>
-        <div class="card-tags"><span>Gaming</span><span>React</span><span>Firebase</span><span>AI</span></div>
-        <div class="card-progress">
-          <div class="progress-label"><span>Build Progress</span><span>35%</span></div>
-          <div class="progress-track"><div class="progress-fill" style="width:35%"></div></div>
-        </div>
-        <div class="card-actions">
-          <a href="/confidential" class="btn-outline">🔒 Private Repo</a>
-          <a href="/waitlist" class="btn-primary">🚀 Early Access</a>
-        </div>
-      </article>
+          <!-- VoiceIsolate Pro -->
+          <a href="/voiceisolate" class="project-card project-card-detail reveal delay-1" aria-label="VoiceIsolate Pro — view project">
+            <img src="/assets/voiceisolate_hero.png" alt="VoiceIsolate Pro hero" class="project-image" />
+            <div class="card-top">
+              <span class="tag">Audio AI · Voice UX</span>
+              <span class="status">Research</span>
+            </div>
+            <h3>VoiceIsolate Pro</h3>
+            <p>Best-in-class voice isolation &amp; audio enhancement powered by Neural-Sync™ AI. Multi-threaded DSP, GPU-accelerated, ML-powered for real-time processing.</p>
+            <div class="card-meta">
+              <span class="chip">JavaScript</span><span class="chip">Audio DSP</span><span class="chip">ML inference</span><span class="chip">GPU</span>
+            </div>
+            <span class="card-link">View project details &rarr;</span>
+          </a>
 
-      <!-- Education Bot -->
-      <article class="project-card">
-        <div class="card-glow"></div>
-        <div class="card-meta">
-          <span class="status-badge private">🔒 Private</span>
-          <span class="card-year">2026</span>
-        </div>
-        <h2>Education Bot</h2>
-        <p>Adaptive learning assistant that personalizes curriculum delivery using LLM reasoning and student profiling.</p>
-        <div class="card-tags"><span>EdTech</span><span>LLM</span><span>Next.js</span><span>OpenAI</span></div>
-        <div class="card-progress">
-          <div class="progress-label"><span>Build Progress</span><span>55%</span></div>
-          <div class="progress-track"><div class="progress-fill" style="width:55%"></div></div>
-        </div>
-        <div class="card-actions">
-          <a href="/confidential" class="btn-outline">🔒 Private Repo</a>
-          <a href="/waitlist" class="btn-primary">🚀 Early Access</a>
-        </div>
-      </article>
+          <!-- AI Bridge -->
+          <article class="project-card reveal">
+            <div class="card-top">
+              <span class="tag">Federated Agents · MCP</span>
+              <span class="status status--active">Core build</span>
+            </div>
+            <h3>AI Bridge</h3>
+            <p>A federated, protocol-driven agentic workbench. Specialized agents for deep research and autonomous coding coordinated via MCP and LangGraph cyclic state machines. Every decision visible in React Flow in real time.</p>
+            <div class="card-meta">
+              <span class="chip">Next.js 15</span><span class="chip">LangGraph</span><span class="chip">MCP</span><span class="chip">E2B Sandboxes</span>
+            </div>
+            <a href="https://github.com/Joker5514/Ai-bridge" target="_blank" rel="noreferrer noopener" class="card-link">View on GitHub &rarr;</a>
+          </article>
 
+          <!-- AI Counselor Dashboard -->
+          <article class="project-card reveal delay-1">
+            <div class="card-top">
+              <span class="tag">Multimodal · Voice UX</span>
+              <span class="status status--active">Active</span>
+            </div>
+            <h3>AI Counselor Dashboard</h3>
+            <p>Multimodal AI counselor dashboard featuring a chat interface, visual avatar, and credit-monitoring system with state-saving capabilities. Emotion-aware, real-time advisory system.</p>
+            <div class="card-meta">
+              <span class="chip">TypeScript</span><span class="chip">Multimodal</span><span class="chip">Credit monitoring</span>
+            </div>
+          </article>
+
+          <!-- OrchestrAI Music Studio -->
+          <article class="project-card reveal">
+            <div class="card-top">
+              <span class="tag">Creative AI · Audio</span>
+              <span class="status">In study</span>
+            </div>
+            <h3>OrchestrAI Music Studio</h3>
+            <p>Multi-agent AI DAW builder using OrchestrAI Nexus. Orchestrated development across Claude Opus, Gemini, DeepSeek, and GPT. Autonomous composition, mixing, and production pipelines.</p>
+            <div class="card-meta">
+              <span class="chip">Python</span><span class="chip">Multi-LLM</span><span class="chip">DAW automation</span>
+            </div>
+            <a href="https://github.com/Joker5514/OrchestrAI-Music-Studio-" target="_blank" rel="noreferrer noopener" class="card-link">View on GitHub &rarr;</a>
+          </article>
+
+          <!-- Voice Micro-Surveys -->
+          <article class="project-card reveal delay-1">
+            <div class="card-top">
+              <span class="tag">Voice UX · Data</span>
+              <span class="status">Experimental</span>
+            </div>
+            <h3>Voice Micro-Surveys</h3>
+            <p>Capturing high-signal feedback through short spoken interactions. Hypothesis: voice-first input removes enough friction to meaningfully increase completion rates vs. traditional forms.</p>
+            <div class="card-meta">
+              <span class="chip">Web Audio</span><span class="chip">LLM transcription</span><span class="chip">Serverless</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
     </section>
+
+    <!-- ALL PROJECTS / REPOSITORY INDEX -->
+    <section class="section all-projects-section" id="all-projects" aria-labelledby="all-projects-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Full Repository Index</span>
+          <h2 id="all-projects-heading">All 48 repositories</h2>
+          <p>Every experiment organized by domain — agent orchestration, autonomous systems, personal AI, voice &amp; audio, apps, and infrastructure.</p>
+        </div>
+
+        <!-- Category: Agent Orchestration -->
+        <div class="repo-category reveal">
+          <h3 class="category-label"><span class="category-dot dot-red"></span> Agent Orchestration</h3>
+          <div class="repo-grid">
+            <a href="https://github.com/Joker5514/orchestrai-nexus" target="_blank" rel="noreferrer noopener" class="repo-card">
+              <span class="repo-name">orchestrai-nexus</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Advanced AI orchestration framework — multi-agent collaboration, quantum-inspired routing, ethical governance.</p>
+            </a>
+            <a href="https://github.com/Joker5514/Ai-bridge" target="_blank" rel="noreferrer noopener" class="repo-card">
+              <span class="repo-name">Ai-bridge</span>
+              <span class="repo-lang lang-ts">TypeScript</span>
+              <p>Federated agentic workbench with MCP + LangGraph cyclic state machines and React Flow visualization.</p>
+            </a>
+            <div class="repo-card">
+              <span class="repo-name">orchestrai-nexus-auto</span>
+              <span class="repo-lang">Private</span>
+              <p>OrchestrAI Nexus with automatic approval workflows for multi-AI orchestration pipelines.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">orchestrai-github-pr-agent</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Multi-agent swarm intelligence for automated GitHub PR review with creator authority integration.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">unified-ai-orchestration-system</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Multi-platform AI orchestration integrating Claude, Gemini, Grok with intelligent routing and threads.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">orchestrai-personal-assistant</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Personal AI assistant that learns from conversation patterns with autonomous daily development.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Autonomous Systems -->
+        <div class="repo-category reveal">
+          <h3 class="category-label"><span class="category-dot dot-orange"></span> Autonomous Systems &amp; Workflows</h3>
+          <div class="repo-grid">
+            <div class="repo-card">
+              <span class="repo-name">autonomous-ai-system</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Autonomous AI development with automated research integration, MoE+MLA architecture, and daily CI/CD.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">autonomous-ai-workflows</span>
+              <span class="repo-lang">Private</span>
+              <p>Central hub for autonomous AI-powered GitHub workflows scanning repos and creating improvement PRs.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">autonomous-github-workflows</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Autonomous system that identifies improvements and distributes updates across all AI projects.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">autonomous-ai-genesis</span>
+              <span class="repo-lang">Private</span>
+              <p>State-of-the-art autonomous AI combining 200B parameter MoE model with LangGraph agents.</p>
+            </div>
+            <a href="https://github.com/Joker5514/workflow-failure-copilot" target="_blank" rel="noreferrer noopener" class="repo-card">
+              <span class="repo-name">workflow-failure-copilot</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Monitors all GitHub repos for workflow failures, analyzes errors, and automatically debugs and retries.</p>
+            </a>
+            <div class="repo-card">
+              <span class="repo-name">github-autofix-system</span>
+              <span class="repo-lang">Private</span>
+              <p>Universal GitHub repo autofix — retries failed CI/CD pipelines, fixes linting errors, and auto-merges PRs.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">ai-innovation-hub</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Central AI research distribution — discovers, implements, and distributes cutting-edge breakthroughs daily.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">ai-assistant-dev</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Automated AI assistant development pipeline — 95% automated with daily progress tracking.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Personal AI Assistants -->
+        <div class="repo-category reveal">
+          <h3 class="category-label"><span class="category-dot dot-ember"></span> Personal AI Assistants &amp; Memory Systems</h3>
+          <div class="repo-grid">
+            <div class="repo-card">
+              <span class="repo-name">randy-deep-ai-agent</span>
+              <span class="repo-lang">Private</span>
+              <p>Deep AI agent built from Randy's conversation patterns, spaces, and expertise — personalized multi-agent assistant.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">vito-ai-assistant</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>VITO (Virtual Intelligent Task Orchestrator) — long-term memory, daily automation, and adaptive learning.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">enhanced-randy-ai-assistant</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Advanced AI assistant with memory systems, specialized modules, and multi-platform configuration.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">RandyAI-PersonalAssistant</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Complete personal AI assistant — autonomous, learning, multi-platform integration.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">randy-ai-assistant</span>
+              <span class="repo-lang lang-docker">Dockerfile</span>
+              <p>Containerized personalized AI with conversation memory, multi-agent coordination, and rideshare optimization.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">orchestrai-personal</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Personal AI orchestration learning from all conversation patterns across Perplexity, Claude, Gemini, and Grok.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">nexus-ai-personal</span>
+              <span class="repo-lang">Private</span>
+              <p>Personal AI orchestration with multi-platform memory and adaptive learning across platforms.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">randy-ai-genesis</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Unified AI assistant learning from all of Randy's conversations, spaces, threads, and tones.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">randy-beefed-ai-genesis</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Comprehensive 30-Day Framework for ultimate AI assistant, scaffolding architecture from scratch.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">Randy-Beefed-AI-Assistant</span>
+              <span class="repo-lang">Private</span>
+              <p>Advanced multi-agent AI assistant with persistent memory, voice processing, and cross-platform integration.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">unified-ai-assistant-hub</span>
+              <span class="repo-lang">Private</span>
+              <p>Unified hub integrating Claude, Grok, Gemini, Jules, Comet, and Abacus AI with threads and GitHub automation.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">ai-tech-innovations-2025</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Research tracking and implementation of key AI technical innovations from 2025 and beyond.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Voice & Audio -->
+        <div class="repo-category reveal">
+          <h3 class="category-label"><span class="category-dot dot-rose"></span> Voice, Audio &amp; Interfaces</h3>
+          <div class="repo-grid">
+            <a href="https://github.com/Joker5514/VoiceIsolate-Pro" target="_blank" rel="noreferrer noopener" class="repo-card">
+              <span class="repo-name">VoiceIsolate-Pro</span>
+              <span class="repo-lang lang-js">JavaScript</span>
+              <p>Best-in-class voice isolation &amp; audio enhancement — Threads from Space Architecture, GPU-accelerated, ML-powered.</p>
+            </a>
+            <div class="repo-card">
+              <span class="repo-name">vito</span>
+              <span class="repo-lang lang-ts">TypeScript</span>
+              <p>VITO voice interface — conversational AI with ambient UX and multi-turn state management.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">Vito-website-terminal-</span>
+              <span class="repo-lang">Private</span>
+              <p>Ready-to-deploy terminal-style website for the VITO voice interface product.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">perplexity-comet-automation</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>AI-powered browser automation extension for Perplexity and Comet with native host integration.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Apps & Products -->
+        <div class="repo-category reveal">
+          <h3 class="category-label"><span class="category-dot dot-pink"></span> Apps, Products &amp; Platforms</h3>
+          <div class="repo-grid">
+            <div class="repo-card">
+              <span class="repo-name">ai-counselor-dashboard</span>
+              <span class="repo-lang lang-ts">TypeScript</span>
+              <p>Multimodal AI counselor — chat interface, visual avatar, credit monitoring, and state-saving system.</p>
+            </div>
+            <a href="https://github.com/Joker5514/OrchestrAI-Music-Studio-" target="_blank" rel="noreferrer noopener" class="repo-card">
+              <span class="repo-name">OrchestrAI-Music-Studio</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>Multi-agent AI DAW builder — orchestrated development across Claude, Gemini, DeepSeek, GPT.</p>
+            </a>
+            <div class="repo-card">
+              <span class="repo-name">Love-Me-Not</span>
+              <span class="repo-lang lang-html">HTML</span>
+              <p>Forensic psychology mobile app — AI-powered relationship analysis &amp; manipulation detection. Analyzes text, images, video, audio for Dark Triad traits and gaslighting patterns.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">detective-app / detective</span>
+              <span class="repo-lang lang-python">Python</span>
+              <p>DetectiveIQ — analyst training platform covering microexpressions, body language, OSINT, and reasoning lab.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">forensic-detective-web</span>
+              <span class="repo-lang lang-ts">TypeScript</span>
+              <p>Web frontend for the forensic detective platform — OSINT training, audio whisper analysis, and case reasoning.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">stake-affiliate-vito</span>
+              <span class="repo-lang lang-ts">TypeScript</span>
+              <p>Stake.us affiliate marketing site with AI-powered Uncle Vito character assistant, voice synthesis, and game previews.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">vibe</span>
+              <span class="repo-lang lang-ts">TypeScript</span>
+              <p>Vibe — experimental social/gaming platform with AI-driven content and engagement mechanics.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category: Infrastructure & DevOps -->
+        <div class="repo-category reveal">
+          <h3 class="category-label"><span class="category-dot dot-dim"></span> Infrastructure, DevOps &amp; Tools</h3>
+          <div class="repo-grid">
+            <a href="https://github.com/Joker5514/conqueror-studios-web" target="_blank" rel="noreferrer noopener" class="repo-card">
+              <span class="repo-name">conqueror-studios-web</span>
+              <span class="repo-lang lang-html">HTML</span>
+              <p>This site — official Conqueror Studios portfolio. Dark neon theme, animated terminal, live on GitHub.</p>
+            </a>
+            <div class="repo-card">
+              <span class="repo-name">desk-commander</span>
+              <span class="repo-lang lang-ts">TypeScript</span>
+              <p>Device automation system — cross-platform command and control for desktop environments.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">api-keys-backend</span>
+              <span class="repo-lang lang-js">JavaScript</span>
+              <p>Secure API keys backend for Play Store app deployment and runtime credential management.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">red-nexus-forge</span>
+              <span class="repo-lang">Private</span>
+              <p>Red Nexus Forge — internal tooling and scaffolding infrastructure for Conqueror Studios projects.</p>
+            </div>
+            <div class="repo-card">
+              <span class="repo-name">pr-agent-settings</span>
+              <span class="repo-lang">Private</span>
+              <p>Centralized configuration for the PR review agent across all repositories in the lab.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
-  <footer class="site-footer">
-    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank" rel="noopener">📁 Drive</a> · <a href="mailto:r.jordan@conqueror-studios.com">✉️ Email</a></p>
-    <a href="#top" style="font-size:0.8rem;color:#888;text-decoration:none;margin-top:0.4rem;display:inline-block;">↑ Back to top</a>
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-wrap">
+      <p>&copy; 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
+      <div class="footer-links">
+        <a href="/studio">Studio</a>
+        <a href="/waitlist">Waitlist</a>
+        <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
+        <a href="mailto:hello@conquerorstudios.dev">Email</a>
+        <a href="#main-content">Back to top &uarr;</a>
+      </div>
+    </div>
   </footer>
 
   <script src="script.js"></script>
-  <script src="multipage.js"></script>
 </body>
 </html>

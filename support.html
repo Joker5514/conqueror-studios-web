@@ -4,29 +4,39 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Support | Conqueror Studios</title>
-  <meta name="description" content="Contact Conqueror Studios — reach Randy Jordan for project inquiries, partnerships, feature requests, or technical questions." />
+  <meta name="description" content="Contact Conqueror Studios — reach Randy Jordan for project inquiries, partnerships, feature requests, or to become a lab partner." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="multipage.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
   <style>
-    /* ── Support-page extras ── */
+    .page-hero { padding: 88px 0 56px; text-align: center; }
+    .page-hero h1 {
+      font-size: clamp(32px, 5vw, 64px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin: 12px 0 16px;
+      text-shadow: 0 0 60px rgba(255,34,68,0.18);
+      line-height: 1.08;
+    }
     .response-badge {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      background: rgba(255,40,40,0.12);
-      border: 1px solid var(--accent-red, #c0392b);
+      background: rgba(255,34,68,0.08);
+      border: 1px solid var(--accent);
       border-radius: 20px;
       padding: 0.3rem 0.9rem;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.82rem;
-      color: #ff6b6b;
-      margin-top: 0.75rem;
-      letter-spacing: 0.04em;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      margin-top: 16px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
-    .response-badge span.dot {
-      width: 8px; height: 8px;
-      background: #39ff14;
+    .response-badge .dot {
+      width: 7px; height: 7px;
+      background: var(--success);
       border-radius: 50%;
       animation: pulse-dot 1.6s ease-in-out infinite;
     }
@@ -34,138 +44,178 @@
       0%,100% { opacity: 1; transform: scale(1); }
       50%      { opacity: 0.4; transform: scale(1.35); }
     }
-    .support-options { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-    .support-form select {
-      width: 100%;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 6px;
-      color: #e0e0e0;
-      padding: 0.6rem 0.9rem;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 1rem;
-      margin-top: 0.25rem;
-      cursor: pointer;
-      transition: border-color 0.2s;
+    .contact-links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 40px;
     }
-    .support-form select:focus { border-color: var(--accent-red, #c0392b); outline: none; }
-    .support-form select option { background: #1a0a0a; color: #e0e0e0; }
-    .back-to-top {
-      display: inline-block;
-      margin-top: 0.5rem;
-      font-size: 0.8rem;
-      color: #888;
-      text-decoration: none;
-      transition: color 0.2s;
+    .contact-link-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      transition: border-color .25s, box-shadow .25s;
     }
-    .back-to-top:hover { color: #ff6b6b; }
+    .contact-link-card:hover { border-color: var(--border-hover); box-shadow: var(--glow); }
+    .contact-link-card h3 { font-size: 15px; font-weight: 700; color: var(--text-bright); margin-bottom: 8px; }
+    .contact-link-card p { font-size: 13px; color: var(--text-dim); line-height: 1.65; margin-bottom: 16px; }
   </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-logo"><a href="/">⚔️ CONQUEROR STUDIOS</a></div>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/projects">Projects</a></li>
-      <li><a href="/studio">Studio</a></li>
-      <li><a href="/waitlist">Waitlist</a></li>
-      <li><a href="/support" class="active">Support</a></li>
-    </ul>
-  </nav>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow glow-1" aria-hidden="true"></div>
+  <div class="bg-glow glow-2" aria-hidden="true"></div>
 
-  <main class="page-main" id="top">
-    <section class="page-hero animate-fade-up">
-      <h1 class="glitch" data-text="SUPPORT">SUPPORT</h1>
-      <p class="hero-sub">Questions, feedback, or want to collaborate? We're here.</p>
-      <div class="response-badge">
-        <span class="dot"></span>
-        Typical response within 24–48 hours
+  <header class="site-header" role="banner">
+    <div class="container nav-wrap">
+      <a href="/" class="brand" aria-label="Conqueror Studios home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span class="brand-text">Conqueror Studios</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav" role="navigation" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/projects">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="/waitlist">Waitlist</a>
+        <a href="/support" class="active">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- PAGE HERO -->
+    <section class="page-hero" aria-labelledby="page-heading">
+      <div class="container">
+        <span class="eyebrow">Collaborate</span>
+        <h1 id="page-heading">Support &amp; Contact</h1>
+        <p class="hero-text" style="max-width:560px;margin:0 auto;">
+          Questions, feedback, or want to collaborate? Bring us a messy system, not a polished brief.
+        </p>
+        <div class="response-badge">
+          <span class="dot"></span>
+          Typical response within 24&ndash;48 hours
+        </div>
       </div>
     </section>
 
-    <section class="support-section animate-fade-up delay-1">
-      <div class="support-options">
-
-        <!-- Email card (updated) -->
-        <div class="support-card">
-          <h3>📧 Email</h3>
-          <p>Reach out directly for project inquiries, partnerships, or technical questions.</p>
-          <a href="mailto:r.jordan@conqueror-studios.com" class="btn-outline">r.jordan@conqueror-studios.com</a>
+    <!-- CONTACT LINKS -->
+    <section class="section" id="contact-links" aria-label="Contact options">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Get in touch</span>
+          <h2>Reach out directly</h2>
+          <p>Legacy workflows, overlapping tools, strange constraints — these make the best experiments. If your AI problem is weird, we probably want to study it.</p>
         </div>
-
-        <!-- Drive Resources -->
-        <div class="support-card">
-          <h3>📁 Drive Resources</h3>
-          <p>Access project documentation, design assets, and roadmap files on Google Drive.</p>
-          <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" class="btn-outline" target="_blank" rel="noopener">Open Drive</a>
+        <div class="contact-links-grid">
+          <div class="contact-link-card reveal">
+            <h3>Email</h3>
+            <p>Reach out directly for project inquiries, partnerships, or technical questions.</p>
+            <a href="mailto:hello@conquerorstudios.dev" class="btn btn-secondary">hello@conquerorstudios.dev</a>
+          </div>
+          <div class="contact-link-card reveal delay-1">
+            <h3>GitHub</h3>
+            <p>Browse source code, open issues, or follow along with active development across all 48 repositories.</p>
+            <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener" class="btn btn-secondary">@Joker5514 &rarr;</a>
+          </div>
+          <div class="contact-link-card reveal delay-2">
+            <h3>LinkedIn</h3>
+            <p>Connect with Randy Jordan for professional collaborations, partnerships, and press inquiries.</p>
+            <a href="https://linkedin.com/in/randy-jordan" target="_blank" rel="noreferrer noopener" class="btn btn-secondary">LinkedIn &rarr;</a>
+          </div>
+          <div class="contact-link-card reveal delay-3">
+            <h3>Feature Suggestion</h3>
+            <p>Have an idea or open question for the lab? Submit it through the waitlist form for review.</p>
+            <a href="/waitlist#suggest" class="btn btn-secondary">Submit to lab queue</a>
+          </div>
         </div>
-
-        <!-- Feature Suggestion -->
-        <div class="support-card">
-          <h3>💡 Suggest a Feature</h3>
-          <p>Have an idea? Submit it through the waitlist form and we'll review it.</p>
-          <a href="/waitlist" class="btn-outline">Go to Waitlist</a>
-        </div>
-
-        <!-- GitHub card -->
-        <div class="support-card">
-          <h3>🐙 GitHub</h3>
-          <p>Browse source code, open issues, or follow along with active development.</p>
-          <a href="https://github.com/Joker5514/conqueror-studios-web" class="btn-outline" target="_blank" rel="noopener">View Repo</a>
-        </div>
-
-        <!-- Social / community card -->
-        <div class="support-card">
-          <h3>🌐 Social</h3>
-          <p>Follow Conqueror Studios for project updates, launch announcements, and behind-the-scenes content.</p>
-          <a href="https://github.com/Joker5514" class="btn-outline" target="_blank" rel="noopener">@Joker5514</a>
-        </div>
-
       </div>
-
-      <!-- Contact form with subject dropdown -->
-      <form class="support-form" id="supportForm">
-        <h2>Send a Message</h2>
-
-        <div class="form-group">
-          <label for="s-name">Name</label>
-          <input type="text" id="s-name" name="name" placeholder="Your name" required />
-        </div>
-
-        <div class="form-group">
-          <label for="s-email">Your Email</label>
-          <input type="email" id="s-email" name="email" placeholder="you@example.com" required />
-        </div>
-
-        <div class="form-group">
-          <label for="s-subject">Subject</label>
-          <select id="s-subject" name="subject" required>
-            <option value="" disabled selected>Select a topic…</option>
-            <option value="project-inquiry">Project Inquiry</option>
-            <option value="partnership">Partnership / Collaboration</option>
-            <option value="feature-request">Feature Request</option>
-            <option value="bug-report">Bug Report</option>
-            <option value="press">Press / Media</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="s-message">Message</label>
-          <textarea id="s-message" name="message" rows="5" placeholder="What's on your mind?" required></textarea>
-        </div>
-
-        <button type="submit" class="btn-primary">📨 Send Message</button>
-      </form>
     </section>
+
+    <!-- FUND THE LAB / DONATION TIERS -->
+    <section class="section" id="support" style="background:var(--surface);" aria-labelledby="support-heading">
+      <div class="container support-grid">
+        <div class="section-heading reveal" style="text-align:left;margin:0;">
+          <span class="eyebrow">Support the lab</span>
+          <h2 id="support-heading">Fund independent AI research</h2>
+          <p>Contributions accelerate prototyping, sandboxed execution, eval tooling, and open-ended experiments that wouldn&rsquo;t exist inside a corporate roadmap.</p>
+        </div>
+        <div class="support-card reveal delay-1">
+          <div class="donation-tier">
+            <span>Experiment support</span>
+            <strong>$10</strong>
+            <p>Fuel sandbox compute, API inference, and quick iteration cycles.</p>
+          </div>
+          <div class="donation-tier">
+            <span>Research support</span>
+            <strong>$50</strong>
+            <p>Back evaluation tooling, deployment infrastructure, and user studies.</p>
+          </div>
+          <div class="donation-tier">
+            <span>Lab partner</span>
+            <strong>$250+</strong>
+            <p>Direct contribution to a specific experiment, with early access and visibility into findings.</p>
+          </div>
+          <a class="btn btn-primary full" href="mailto:hello@conquerorstudios.dev?subject=Lab%20Partner%20Inquiry">Become a lab partner</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT FORM -->
+    <section class="section form-section alt" id="contact" aria-labelledby="contact-heading">
+      <div class="container form-layout">
+        <div class="section-heading reveal" style="text-align:left;margin:0;">
+          <span class="eyebrow">Send a message</span>
+          <h2 id="contact-heading">Bring us a messy system</h2>
+          <p>We reserve time each week for short calls with teams exploring new AI systems. Reach out and we&rsquo;ll share a link to schedule.</p>
+          <p class="mt-sm">Led by Randy Jordan &mdash; AI architect, full-stack developer, and systems researcher based in Mobile, Alabama.</p>
+        </div>
+        <form class="glass-form reveal delay-1" id="contactForm" novalidate>
+          <label>Name<input type="text" name="name" placeholder="Your name" required autocomplete="name" /></label>
+          <label>Email<input type="email" name="email" placeholder="you@example.com" required autocomplete="email" /></label>
+          <label>
+            Subject
+            <select name="subject" required>
+              <option value="" disabled selected>Select a topic&hellip;</option>
+              <option value="project-inquiry">Project Inquiry</option>
+              <option value="partnership">Partnership / Collaboration</option>
+              <option value="feature-request">Feature Request</option>
+              <option value="lab-partner">Lab Partner</option>
+              <option value="bug-report">Bug Report</option>
+              <option value="press">Press / Media</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label>
+            Message
+            <textarea name="message" rows="5" placeholder="Describe the system, constraint, or question you're exploring" required></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary full">Send message</button>
+          <p class="form-message" id="contactMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
   </main>
 
-  <footer class="site-footer">
-    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank" rel="noopener">📁 Drive</a> · <a href="mailto:r.jordan@conqueror-studios.com">✉️ Email</a></p>
-    <a href="#top" class="back-to-top">↑ Back to top</a>
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-wrap">
+      <p>&copy; 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
+      <div class="footer-links">
+        <a href="/projects">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
+        <a href="mailto:hello@conquerorstudios.dev">Email</a>
+        <a href="#main-content">Back to top &uarr;</a>
+      </div>
+    </div>
   </footer>
 
   <script src="script.js"></script>
-  <script src="multipage.js"></script>
 </body>
 </html>

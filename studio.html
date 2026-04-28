@@ -4,56 +4,264 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Studio | Conqueror Studios</title>
+  <meta name="description" content="Conqueror Studios is an independent AI R&D lab led by Randy Jordan in Mobile, Alabama. Learn about our research methodology, working principles, and tech stack." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="multipage.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    .page-hero { padding: 88px 0 56px; text-align: center; }
+    .page-hero h1 {
+      font-size: clamp(32px, 5vw, 64px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin: 12px 0 16px;
+      text-shadow: 0 0 60px rgba(255,34,68,0.18);
+      line-height: 1.08;
+    }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 56px;
+      align-items: start;
+      margin-top: 48px;
+    }
+    @media (max-width: 900px) { .about-grid { grid-template-columns: 1fr; } }
+    .about-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+    }
+    .about-card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 16px;
+    }
+    .about-card p { font-size: 15px; color: var(--text-dim); line-height: 1.75; margin-bottom: 12px; }
+    .stack-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+    .stack-list li {
+      font-size: 14px;
+      color: var(--text-dim);
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+  </style>
 </head>
 <body>
-  <nav class="navbar">
-    <div class="nav-logo"><a href="/">⚔️ CONQUEROR STUDIOS</a></div>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/projects">Projects</a></li>
-      <li><a href="/studio" class="active">Studio</a></li>
-      <li><a href="/waitlist">Waitlist</a></li>
-      <li><a href="/support">Support</a></li>
-    </ul>
-  </nav>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow glow-1" aria-hidden="true"></div>
+  <div class="bg-glow glow-2" aria-hidden="true"></div>
 
-  <main class="page-main">
-    <section class="page-hero animate-fade-up">
-      <h1 class="glitch" data-text="THE STUDIO">THE STUDIO</h1>
-      <p class="hero-sub">Based in Mobile, Alabama. Building the future of AI-native software.</p>
-    </section>
+  <header class="site-header" role="banner">
+    <div class="container nav-wrap">
+      <a href="/" class="brand" aria-label="Conqueror Studios home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span class="brand-text">Conqueror Studios</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav" role="navigation" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/projects">Projects</a>
+        <a href="/studio" class="active">Studio</a>
+        <a href="/waitlist">Waitlist</a>
+        <a href="/support">Support</a>
+      </nav>
+    </div>
+  </header>
 
-    <section class="studio-about animate-fade-up delay-1">
-      <div class="about-block">
-        <h2>Who We Are</h2>
-        <p>Conqueror Studios is a one-person innovation lab led by Randy Jordan — AI architect, full-stack developer, and product strategist. We build multi-agent AI systems, voice-first interfaces, and automation tools across web, mobile, and device control.</p>
-        <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" class="btn-outline" target="_blank">📁 Studio Assets on Drive</a>
+  <main id="main-content">
+
+    <!-- PAGE HERO -->
+    <section class="page-hero" aria-labelledby="page-heading">
+      <div class="container">
+        <span class="eyebrow">Independent AI R&amp;D · Mobile, Alabama</span>
+        <h1 id="page-heading">The Studio</h1>
+        <p class="hero-text" style="max-width:600px;margin:0 auto;">
+          One-person innovation lab led by Randy Jordan — AI architect, full-stack developer, and product strategist building the future of AI-native software.
+        </p>
       </div>
-      <div class="about-block">
-        <h2>Our Stack</h2>
-        <ul class="stack-list">
-          <li>⚡ Next.js · React · Node.js</li>
-          <li>🤖 LangChain · OpenAI · Whisper</li>
-          <li>☁️ Vercel · Firebase · Supabase</li>
-          <li>🔗 GitHub Actions · Docker · CI/CD</li>
-          <li>🎙️ Voice AI · WebRTC · RAG pipelines</li>
-        </ul>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section" id="about" aria-labelledby="about-heading">
+      <div class="container">
+        <div class="about-grid">
+          <div class="reveal">
+            <span class="eyebrow">About</span>
+            <h2 id="about-heading" style="font-size:clamp(22px,2.5vw,34px);font-weight:800;color:var(--text-bright);margin-bottom:20px;">Who we are</h2>
+            <p style="font-size:15px;color:var(--text-dim);line-height:1.75;margin-bottom:16px;">
+              Conqueror Studios is an independent AI R&amp;D lab exploring multi-agent orchestration, voice-first interfaces, and federated agentic architectures in real products.
+            </p>
+            <p style="font-size:15px;color:var(--text-dim);line-height:1.75;margin-bottom:16px;">
+              We build multi-agent AI systems, voice-first interfaces, and automation tools across web, mobile, and device control — bootstrapping a portfolio of sustainable AI products that solve real problems, funded through gig work, built in public, and shipped fast.
+            </p>
+            <p style="font-size:15px;color:var(--text-dim);line-height:1.75;margin-bottom:24px;">
+              Led by Randy Jordan &mdash; AI architect, full-stack developer, and systems researcher based in Mobile, Alabama.
+            </p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener" class="btn btn-secondary">GitHub &rarr;</a>
+              <a href="mailto:hello@conquerorstudios.dev" class="btn btn-secondary">Email us</a>
+            </div>
+          </div>
+          <div class="reveal delay-1">
+            <div class="about-card">
+              <h2>Core Stack</h2>
+              <ul class="stack-list">
+                <li>Next.js 15 · React · Node.js</li>
+                <li>LangGraph · LangChain · OpenAI · Whisper</li>
+                <li>Model Context Protocol (MCP)</li>
+                <li>Vercel · Firebase · Supabase · Redis</li>
+                <li>GitHub Actions · Docker · CI/CD</li>
+                <li>Voice AI · WebRTC · RAG pipelines</li>
+                <li>E2B Firecracker VMs · React Flow</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="studio-mission animate-fade-up delay-2">
-      <h2>Mission</h2>
-      <p>To bootstrap a portfolio of sustainable AI products that solve real problems — funded through gig work, built in public, and shipped fast.</p>
+    <!-- HOW WE OPERATE / THE LAB -->
+    <section class="section studio-section" id="lab" aria-labelledby="lab-heading">
+      <div class="container studio-grid">
+        <div class="reveal">
+          <span class="eyebrow">The Lab</span>
+          <h2 id="lab-heading">How Conqueror Studios operates</h2>
+          <div class="feature-list">
+            <div class="feature-item">
+              <h3>Start from a research question</h3>
+              <p>Every engagement begins with a framed question about behavior we want to observe or change — not a spec sheet or a list of features.</p>
+            </div>
+            <div class="feature-item">
+              <h3>Build the smallest testable system</h3>
+              <p>We build the thinnest vertical slice that exercises real data and real users, then instrument it before iterating.</p>
+            </div>
+            <div class="feature-item">
+              <h3>Observe, not guess</h3>
+              <p>Traces, eval harnesses, and behavioral telemetry turn agent behavior into something you can debug, diff, and improve — not just prompt-tune blindly.</p>
+            </div>
+            <div class="feature-item">
+              <h3>Prefer cyclic graphs over pipelines</h3>
+              <p>Real AI workflows require loops for reasoning, error detection, and self-correction. We architect with LangGraph cyclic state machines rather than linear DAGs.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="studio-panel reveal delay-1">
+          <div class="studio-box">
+            <span>Working Principles</span>
+            <ul>
+              <li>Start from real constraints, not polished briefs.</li>
+              <li>Prefer observability over clever prompts.</li>
+              <li>Protocol-first: MCP as the universal connector layer.</li>
+              <li>Federated intelligence over monolithic &ldquo;God Models.&rdquo;</li>
+              <li>Every deployment is a long-running experiment.</li>
+              <li>Build tools that developers actually want to use.</li>
+            </ul>
+          </div>
+          <div class="studio-box mt-sm">
+            <span>Research Areas</span>
+            <ul>
+              <li>Multi-agent coordination strategies and failure modes.</li>
+              <li>Voice and ambient interface interaction design.</li>
+              <li>Evaluation harnesses for production AI behavior.</li>
+              <li>Federated agentic architecture and MCP tooling.</li>
+              <li>Audio processing and real-time voice isolation.</li>
+              <li>Forensic psychology AI and behavioral analysis.</li>
+              <li>Autonomous workflow and CI/CD intelligence.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </section>
+
+    <!-- LAB INSTRUMENTS / STACK -->
+    <section class="section" id="instruments" aria-labelledby="instruments-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Lab Instruments</span>
+          <h2 id="instruments-heading">Stack &amp; infrastructure</h2>
+          <p>We care about how tools behave under stress. Our stack is biased toward transparency, composability, and developer ergonomics — because experiments are messy by default.</p>
+        </div>
+
+        <div class="instruments-grid">
+          <div class="instrument-group reveal">
+            <h4 class="group-label">Orchestration &amp; agents</h4>
+            <ul class="instrument-list">
+              <li><span class="chip">LangGraph</span> Stateful cyclic graph orchestration with checkpoints and time-travel debugging</li>
+              <li><span class="chip">Model Context Protocol</span> Universal tool connector layer across all agent stacks</li>
+              <li><span class="chip">React Flow</span> Visual graph UI — agents rendered as observable nodes, not black boxes</li>
+              <li><span class="chip">E2B Firecracker VMs</span> Sub-second sandboxed execution environments for code verification</li>
+            </ul>
+          </div>
+          <div class="instrument-group reveal delay-1">
+            <h4 class="group-label">Web &amp; app runtime</h4>
+            <ul class="instrument-list">
+              <li><span class="chip">Next.js 15</span> App Router, RSC streaming, and MCP proxy API routes</li>
+              <li><span class="chip">TypeScript</span> Full type safety across agent schemas, tool definitions, and UI</li>
+              <li><span class="chip">Tailwind CSS</span> Utility-first design system for fast, consistent UI iteration</li>
+              <li><span class="chip">Vercel</span> Serverless deploys, edge functions, and automatic preview environments</li>
+            </ul>
+          </div>
+          <div class="instrument-group reveal">
+            <h4 class="group-label">Data &amp; persistence</h4>
+            <ul class="instrument-list">
+              <li><span class="chip">PostgreSQL + pgvector</span> Relational state, LangGraph checkpoints, and embedding storage</li>
+              <li><span class="chip">Supabase</span> Managed Postgres with real-time subscriptions and auth</li>
+              <li><span class="chip">Redis</span> Job queues for long-running agent workflows beyond serverless timeouts</li>
+            </ul>
+          </div>
+          <div class="instrument-group reveal delay-1">
+            <h4 class="group-label">AI providers &amp; models</h4>
+            <ul class="instrument-list">
+              <li><span class="chip">OpenAI GPT-4o</span> Primary reasoning and code generation workloads</li>
+              <li><span class="chip">Claude 3.5 Sonnet</span> Long-context synthesis and deep research nodes</li>
+              <li><span class="chip">Gemini 2.5 Flash</span> Voice synthesis, fast inference, and TTS experiments</li>
+              <li><span class="chip">Brave Search MCP</span> Live web retrieval for research agent loops</li>
+            </ul>
+          </div>
+          <div class="instrument-group reveal">
+            <h4 class="group-label">Observability &amp; eval</h4>
+            <ul class="instrument-list">
+              <li><span class="chip">LangSmith</span> Trace-level visibility into agent decisions and tool calls</li>
+              <li><span class="chip">Vercel Analytics</span> Real-user performance and Core Web Vitals</li>
+              <li><span class="chip">Custom eval harnesses</span> Behavioral regression tests and offline comparisons against baselines</li>
+            </ul>
+          </div>
+          <div class="instrument-group reveal delay-1">
+            <h4 class="group-label">Audio &amp; voice</h4>
+            <ul class="instrument-list">
+              <li><span class="chip">Web Audio API</span> Browser-native audio pipeline for capture and processing</li>
+              <li><span class="chip">xterm.js</span> Browser-based terminal mirroring WebSocket streams from E2B VMs</li>
+              <li><span class="chip">Gemini TTS</span> Voice synthesis for conversational and survey interfaces</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <footer class="site-footer">
-    <p>© 2026 Conqueror Studios · <a href="https://drive.google.com/drive/folders/199WPfDBn5iGNomAco_jEP2hleuhFqjcb" target="_blank">📁 Drive</a></p>
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-wrap">
+      <p>&copy; 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
+      <div class="footer-links">
+        <a href="/projects">Projects</a>
+        <a href="/waitlist">Waitlist</a>
+        <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
+        <a href="mailto:hello@conquerorstudios.dev">Email</a>
+        <a href="#main-content">Back to top &uarr;</a>
+      </div>
+    </div>
   </footer>
+
   <script src="script.js"></script>
-  <script src="multipage.js"></script>
 </body>
 </html>
