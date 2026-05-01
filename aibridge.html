@@ -43,8 +43,7 @@
       gap: 60px;
       align-items: center;
     }
-    .slide-inner.reversed { direction: rtl; }
-    .slide-inner.reversed > * { direction: ltr; }
+    .slide-inner.reversed > *:first-child { order: 2; }
     @media (max-width: 860px) {
       .slide-inner, .slide-inner.reversed { grid-template-columns: 1fr; direction: ltr; }
     }
