@@ -109,6 +109,33 @@
     .feature-bullets li::before { content: '\2192'; position: absolute; left: 0; color: var(--accent); }
     .feature-bullets strong { color: var(--text-bright); }
 
+    /* ── Video / media ── */
+    .media-section { padding: 80px 0; background: var(--surface); }
+    .media-embed {
+      width: 100%;
+      max-width: 900px;
+      margin: 32px auto 0;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.4), 0 0 60px rgba(255,34,68,0.08);
+      display: block;
+      aspect-ratio: 16 / 9;
+    }
+    .media-embed iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: none;
+    }
+    .media-downloads {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
     /* ── CTA section ── */
     .product-cta {
       padding: 80px 0;
@@ -271,6 +298,24 @@
               <li>Enterprise-grade security for all agentic operations.</li>
             </ul>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COGNITIVE OS VIDEO -->
+    <section class="media-section" id="cognitive-os-video" aria-labelledby="video-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Deep Dive</span>
+          <h2 id="video-heading">Architecting the Cognitive OS</h2>
+          <p>A comprehensive walkthrough of the OrchestrAI Nexus architecture — how agents coordinate, how context is shared, and how the system routes tasks across the agentic mesh.</p>
+        </div>
+        <div class="media-embed reveal">
+          <iframe
+            src="https://drive.google.com/file/d/1a4S_n-wUz85rNuyqlPx2f0zOZTLxUKck/preview"
+            allow="autoplay"
+            title="Architecting the Cognitive OS — OrchestrAI Nexus deep dive"
+          ></iframe>
         </div>
       </div>
     </section>
