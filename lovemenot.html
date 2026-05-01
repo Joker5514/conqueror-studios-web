@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Love Me Not | Conqueror Studios</title>
+  <meta name="description" content="Love Me Not — forensic psychology mobile app powered by AI. Analyzes text, images, video, and audio for Dark Triad traits, gaslighting patterns, and manipulation detection." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .product-hero {
+      padding: 64px 0 56px;
+      text-align: center;
+    }
+    .product-hero h1 {
+      font-size: clamp(32px, 5vw, 60px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin: 12px 0 20px;
+      text-shadow: 0 0 60px rgba(255,34,68,0.20);
+      line-height: 1.08;
+    }
+
+    .slide { padding: 80px 0; }
+    .slide:nth-child(even) { background: var(--surface); }
+    .slide-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    @media (max-width: 860px) { .slide-inner { grid-template-columns: 1fr; } }
+    .slide-copy h2 {
+      font-size: clamp(22px, 2.8vw, 36px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin-bottom: 16px;
+      line-height: 1.15;
+    }
+    .slide-copy p { font-size: 15px; color: var(--text-dim); line-height: 1.8; margin-bottom: 14px; }
+
+    .feature-bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+    .feature-bullets li {
+      font-size: 14px;
+      color: var(--text-dim);
+      padding-left: 20px;
+      position: relative;
+    }
+    .feature-bullets li::before { content: '\2192'; position: absolute; left: 0; color: var(--accent); }
+    .feature-bullets strong { color: var(--text-bright); }
+
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 32px;
+    }
+    .use-case-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color .25s;
+    }
+    .use-case-card:hover { border-color: var(--border-hover); }
+    .use-case-card h4 { font-size: 14px; font-weight: 700; color: var(--text-bright); margin-bottom: 8px; }
+    .use-case-card p { font-size: 13px; color: var(--text-dim); line-height: 1.65; }
+
+    .media-section { padding: 80px 0; background: var(--surface); }
+    .media-embed {
+      width: 100%;
+      max-width: 900px;
+      margin: 32px auto 0;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.4), 0 0 60px rgba(255,34,68,0.08);
+      display: block;
+      aspect-ratio: 16 / 9;
+    }
+    .media-embed iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: none;
+    }
+
+    .pptx-section { padding: 80px 0; }
+    .pptx-section.surface { background: var(--surface); }
+    .pptx-embed {
+      width: 100%;
+      max-width: 960px;
+      margin: 32px auto 0;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+      display: block;
+      aspect-ratio: 16 / 9;
+    }
+    .pptx-embed iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: none;
+    }
+
+    .product-cta {
+      padding: 80px 0;
+      text-align: center;
+      background: linear-gradient(180deg, var(--surface), var(--bg));
+    }
+    .product-cta h2 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin-bottom: 16px;
+      text-shadow: 0 0 40px rgba(255,34,68,0.15);
+    }
+    .product-cta p { font-size: 16px; color: var(--text-dim); max-width: 500px; margin: 0 auto 32px; }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow glow-1" aria-hidden="true"></div>
+  <div class="bg-glow glow-2" aria-hidden="true"></div>
+
+  <header class="site-header" role="banner">
+    <div class="container nav-wrap">
+      <a href="/" class="brand" aria-label="Conqueror Studios home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span class="brand-text">Conqueror Studios</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav" role="navigation" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/projects" class="active">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="/waitlist">Waitlist</a>
+        <a href="/support">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- PRODUCT HERO -->
+    <section class="product-hero" aria-labelledby="product-heading">
+      <div class="container">
+        <span class="eyebrow">Forensic Psychology · Behavioral AI · Mobile</span>
+        <h1 id="product-heading">Love Me Not</h1>
+        <p class="hero-text" style="max-width:640px;margin:0 auto 12px;">
+          AI-powered forensic psychology app for relationship analysis and manipulation detection. Analyzes text, images, video, and audio for Dark Triad traits, gaslighting patterns, and coercive control behaviors.
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:24px 0 0;">
+          <a href="https://github.com/Joker5514/Love-Me-Not" target="_blank" rel="noreferrer noopener" class="btn btn-primary">View on GitHub &rarr;</a>
+          <a href="/waitlist" class="btn btn-secondary">Join Waitlist</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT IT DOES -->
+    <section class="slide" id="what" aria-labelledby="what-heading" style="background:var(--surface);">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">The Platform</span>
+          <h2 id="what-heading">Forensic psychology at your fingertips</h2>
+          <p>Love Me Not brings professional-grade behavioral analysis to individuals navigating complex or potentially harmful relationships. Every analysis is multimodal — the AI looks across text, tone, facial expression, and behavioral patterns simultaneously.</p>
+        </div>
+        <div class="use-cases-grid">
+          <div class="use-case-card reveal">
+            <h4>Dark Triad Detection</h4>
+            <p>Identifies narcissistic, Machiavellian, and psychopathic behavioral patterns in communication and interaction history.</p>
+          </div>
+          <div class="use-case-card reveal delay-1">
+            <h4>Gaslighting Pattern Recognition</h4>
+            <p>Analyzes conversation threads for denial, minimization, and reality-distortion techniques over time.</p>
+          </div>
+          <div class="use-case-card reveal delay-2">
+            <h4>Coercive Control Analysis</h4>
+            <p>Maps behavioral patterns against established frameworks for identifying coercive and controlling relationship dynamics.</p>
+          </div>
+          <div class="use-case-card reveal delay-3">
+            <h4>Multimodal Input</h4>
+            <p>Accepts text messages, images, video clips, and audio recordings — combining signals for higher-confidence analysis.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- V2.0 SYSTEM DETAILS -->
+    <section class="slide" id="v2" aria-labelledby="v2-heading">
+      <div class="slide-inner">
+        <div class="slide-copy reveal">
+          <span class="eyebrow">Version 2.0</span>
+          <h2 id="v2-heading">The system overhaul</h2>
+          <p>Love Me Not v2.0 represents a full architectural rebuild — moving from pattern-matching heuristics to a deep multi-modal AI pipeline capable of cross-referencing behavioral signals across all input types in a single unified analysis pass.</p>
+          <ul class="feature-bullets">
+            <li><strong>Unified Analysis Engine</strong> — Single pipeline processes text, audio, and visual signals together.</li>
+            <li><strong>Behavioral Timeline</strong> — Tracks escalation patterns and behavioral drift over weeks or months.</li>
+            <li><strong>Evidence-Grade Reporting</strong> — Structured output suitable for documentation and professional review.</li>
+            <li><strong>Privacy-First Architecture</strong> — All processing is local or encrypted — no behavioral data stored unencrypted.</li>
+          </ul>
+        </div>
+        <div class="reveal delay-1" style="display:flex;flex-direction:column;gap:16px;">
+          <div class="studio-box">
+            <span>Analysis Modalities</span>
+            <ul>
+              <li>Text — message tone, word choice, frequency patterns.</li>
+              <li>Audio — vocal stress, micro-pauses, emotional register.</li>
+              <li>Video — facial expression, micro-expression detection.</li>
+              <li>Images — context analysis and visual pattern matching.</li>
+            </ul>
+          </div>
+          <div class="studio-box">
+            <span>Built With</span>
+            <ul>
+              <li>HTML · JavaScript · Mobile-first UI</li>
+              <li>OpenAI Vision + Whisper</li>
+              <li>Forensic psychology behavioral frameworks</li>
+              <li>Secure local-first processing</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECT UPDATE BRIEFING VIDEO -->
+    <section class="media-section" id="briefing-video" aria-labelledby="video-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Project Briefing</span>
+          <h2 id="video-heading">Love Me Not Project Update</h2>
+          <p>A comprehensive briefing on the Love Me Not project — the behavioral analysis framework, v2.0 architecture overhaul, and the roadmap to mobile deployment.</p>
+        </div>
+        <div class="media-embed reveal">
+          <iframe
+            src="https://drive.google.com/file/d/1aVZ2FFOBYMKOMTMVF793TataQQgJWAQK/preview"
+            allow="autoplay"
+            title="Love Me Not Project Update Briefing"
+          ></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- V2.0 BLUEPRINT DECK -->
+    <section class="pptx-section" id="blueprint-deck" aria-labelledby="blueprint-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Technical Blueprint</span>
+          <h2 id="blueprint-heading">Love Me Not v2.0 Blueprint</h2>
+          <p>The complete v2.0 architecture blueprint — multimodal pipeline design, behavioral framework integration, data model, and deployment strategy.</p>
+        </div>
+        <div class="pptx-embed reveal">
+          <iframe
+            src="https://drive.google.com/file/d/1lLt-onZd3jNv0MvXs7Dors9L3e3zlQCo/preview"
+            title="Love Me Not v2.0 Blueprint"
+          ></iframe>
+        </div>
+        <div style="text-align:center;margin-top:20px;">
+          <a href="https://drive.google.com/file/d/1lLt-onZd3jNv0MvXs7Dors9L3e3zlQCo/view" target="_blank" rel="noreferrer noopener" class="btn btn-secondary">Open Full Blueprint &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SYSTEM OVERHAUL DECK -->
+    <section class="pptx-section surface" id="overhaul-deck" aria-labelledby="overhaul-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">System Design</span>
+          <h2 id="overhaul-heading">System Overhaul Specification</h2>
+          <p>The detailed technical specification for the Love Me Not system overhaul — engine redesign, API surface, mobile architecture, and testing strategy.</p>
+        </div>
+        <div class="pptx-embed reveal">
+          <iframe
+            src="https://drive.google.com/file/d/1mEyu7rGuHx3Jw7weMVkQygDY1_i-tK4V/preview"
+            title="Love Me Not System Overhaul"
+          ></iframe>
+        </div>
+        <div style="text-align:center;margin-top:20px;">
+          <a href="https://drive.google.com/file/d/1mEyu7rGuHx3Jw7weMVkQygDY1_i-tK4V/view" target="_blank" rel="noreferrer noopener" class="btn btn-secondary">Open Full Spec &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="product-cta" aria-labelledby="cta-heading">
+      <div class="container">
+        <span class="eyebrow">See clearly. Choose wisely.</span>
+        <h2 id="cta-heading">Forensic psychology, AI-powered</h2>
+        <p>Love Me Not gives individuals the analytical tools that were previously only available to professionals — at the moment they need them most.</p>
+        <div class="cta-actions">
+          <a href="https://github.com/Joker5514/Love-Me-Not" target="_blank" rel="noreferrer noopener" class="btn btn-primary">View on GitHub &rarr;</a>
+          <a href="/waitlist" class="btn btn-secondary">Get Early Access</a>
+          <a href="/projects" class="btn btn-secondary">&larr; All Projects</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-wrap">
+      <p>&copy; 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
+      <div class="footer-links">
+        <a href="/projects">Projects</a>
+        <a href="/orchestrai">OrchestrAI Nexus</a>
+        <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
+        <a href="mailto:r.jordan@conqueror-studios.com">Email</a>
+        <a href="#main-content">Back to top &uarr;</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -284,6 +284,52 @@
       </div>
     </section>
 
+    <!-- DSP PIPELINE -->
+    <section class="slide" id="dsp-pipeline" aria-labelledby="dsp-heading">
+      <div class="slide-inner">
+        <img src="/assets/voiceisolate_dsp_pipeline.png" alt="VoiceIsolate Pro v24 — 36-stage Deca-Pass DSP pipeline diagram" class="reveal" />
+        <div class="slide-copy reveal delay-1">
+          <span class="eyebrow">Technical Architecture</span>
+          <h2 id="dsp-heading">Inside the 36-stage Deca-Pass pipeline</h2>
+          <p>VoiceIsolate Pro v24 processes every audio signal through a 36-stage "Deca-Pass" DSP pipeline enforcing exactly one forward FFT and one inverse FFT — eliminating phase drift, echo, and spectral smearing common in multi-pass systems.</p>
+          <ul class="feature-bullets">
+            <li><strong>Phase 1 (1–7):</strong> Input profiling — decoding, DC offset removal, and spectral fingerprint extraction within the first 500 ms.</li>
+            <li><strong>Phase 2 (8–13):</strong> Spectral front-end — SNR-aware FFT and spectral subtraction to isolate the voice band.</li>
+            <li><strong>Phase 3 (14–26):</strong> Precision enhancement — 9-band EQ chain, Wiener filtering, de-essing, and VAD decisions.</li>
+            <li><strong>Phase 4 (27–29):</strong> ML-powered isolation — Demucs v4.1 and BS-RoFormer voice/music separation.</li>
+            <li><strong>Phase 5 (30–36):</strong> Dynamics and finalization — harmonic reconstruction, brickwall limiting, and inverse FFT.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE OVERVIEW -->
+    <section class="slide" id="architecture" aria-labelledby="arch-heading" style="background:var(--surface);">
+      <div class="slide-inner reversed">
+        <div class="slide-copy reveal">
+          <span class="eyebrow">Browser-Native Architecture</span>
+          <h2 id="arch-heading">Zero-cloud, privacy-first processing</h2>
+          <p>All ML inference and DSP operations occur locally within the browser sandbox. VoiceIsolate Pro v24 achieves sub-10 ms real-time latency for live broadcasts and 6x real-time speed for offline batch processing — without ever sending audio to a server.</p>
+          <table class="compare-table" style="margin-top:16px;">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Role</th>
+                <th>Latency</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Demucs v4.1</td><td>Voice/music separation</td><td>800 ms</td></tr>
+              <tr><td>BS-RoFormer</td><td>Speech restoration</td><td>300 ms</td></tr>
+              <tr><td>Silero VAD</td><td>Voice activity detection</td><td>5 ms</td></tr>
+              <tr><td>Audio Worklet</td><td>Real-time DSP</td><td>&lt;2 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <img src="/assets/voiceisolate_architecture.png" alt="VoiceIsolate Pro v24 — browser-native architecture overview" class="reveal delay-1" />
+      </div>
+    </section>
+
     <!-- USE CASES -->
     <section class="slide" id="use-cases" aria-labelledby="use-cases-heading">
       <div class="container">
@@ -325,6 +371,27 @@
           <video controls controlsList="nodownload" preload="metadata" poster="/assets/voiceisolate_hero.png">
             <source src="/assets/VoiceIsolate_Pro_v24_Masterclass.mp4" type="video/mp4" />
           </video>
+        </div>
+      </div>
+    </section>
+
+    <!-- TECHNICAL ARCHITECTURE DECK -->
+    <section class="media-section" id="architecture-deck" aria-labelledby="deck-heading" style="background:var(--bg);padding:80px 0;">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Technical Presentation</span>
+          <h2 id="deck-heading">VoiceIsolate Pro v24 Technical Architecture</h2>
+          <p>The complete technical architecture deck — the 36-stage Deca-Pass pipeline, multi-threaded worker model, ML integration, and browser-native deployment strategy.</p>
+        </div>
+        <div class="media-embed reveal" style="aspect-ratio:16/9;">
+          <iframe
+            src="https://drive.google.com/file/d/1HNSknNXmOgE5A1__-h9HjXh_YM5I-jJl/preview"
+            title="VoiceIsolate Pro v24 Technical Architecture"
+            style="width:100%;height:100%;display:block;border:none;"
+          ></iframe>
+        </div>
+        <div style="text-align:center;margin-top:20px;">
+          <a href="https://drive.google.com/file/d/1HNSknNXmOgE5A1__-h9HjXh_YM5I-jJl/view" target="_blank" rel="noreferrer noopener" class="btn btn-secondary">Open Full Deck &rarr;</a>
         </div>
       </div>
     </section>

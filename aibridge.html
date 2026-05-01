@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Bridge | Conqueror Studios</title>
+  <meta name="description" content="AI Bridge — the federated future of agentic workflows. Unifies fragmented AI tools into a single, observable, and self-correcting ecosystem via the Model Context Protocol." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .product-hero {
+      padding: 64px 0 0;
+      text-align: center;
+    }
+    .product-hero h1 {
+      font-size: clamp(32px, 5vw, 60px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin: 12px 0 20px;
+      text-shadow: 0 0 60px rgba(255,34,68,0.20);
+      line-height: 1.08;
+    }
+    .product-hero-img {
+      width: 100%;
+      max-width: 1100px;
+      margin: 40px auto 0;
+      display: block;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.4), 0 0 60px rgba(255,34,68,0.08);
+    }
+
+    .slide { padding: 80px 0; }
+    .slide:nth-child(even) { background: var(--surface); }
+    .slide-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .slide-inner.reversed > *:first-child { order: 2; }
+    @media (max-width: 860px) {
+      .slide-inner, .slide-inner.reversed { grid-template-columns: 1fr; direction: ltr; }
+    }
+    .slide-inner img {
+      width: 100%;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.35);
+    }
+    .slide-copy h2 {
+      font-size: clamp(22px, 2.8vw, 36px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin-bottom: 16px;
+      line-height: 1.15;
+    }
+    .slide-copy p { font-size: 15px; color: var(--text-dim); line-height: 1.8; margin-bottom: 14px; }
+    .slide-copy blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 16px;
+      margin: 20px 0;
+      font-size: 15px;
+      color: var(--text);
+      font-style: italic;
+    }
+
+    .feature-bullets { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+    .feature-bullets li {
+      font-size: 14px;
+      color: var(--text-dim);
+      padding-left: 20px;
+      position: relative;
+    }
+    .feature-bullets li::before { content: '\2192'; position: absolute; left: 0; color: var(--accent); }
+    .feature-bullets strong { color: var(--text-bright); }
+
+    .media-section { padding: 80px 0; background: var(--surface); }
+    .media-embed {
+      width: 100%;
+      max-width: 900px;
+      margin: 32px auto 0;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.4), 0 0 60px rgba(255,34,68,0.08);
+      display: block;
+      aspect-ratio: 16 / 9;
+    }
+    .media-embed iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: none;
+    }
+
+    .pptx-section { padding: 80px 0; }
+    .pptx-embed {
+      width: 100%;
+      max-width: 960px;
+      margin: 32px auto 0;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+      display: block;
+      aspect-ratio: 16 / 9;
+    }
+    .pptx-embed iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: none;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+    .compare-table th {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent);
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table td:first-child { color: var(--text-bright); font-weight: 600; }
+
+    .product-cta {
+      padding: 80px 0;
+      text-align: center;
+      background: linear-gradient(180deg, var(--surface), var(--bg));
+    }
+    .product-cta h2 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800;
+      color: var(--text-bright);
+      margin-bottom: 16px;
+      text-shadow: 0 0 40px rgba(255,34,68,0.15);
+    }
+    .product-cta p { font-size: 16px; color: var(--text-dim); max-width: 500px; margin: 0 auto 32px; }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow glow-1" aria-hidden="true"></div>
+  <div class="bg-glow glow-2" aria-hidden="true"></div>
+
+  <header class="site-header" role="banner">
+    <div class="container nav-wrap">
+      <a href="/" class="brand" aria-label="Conqueror Studios home">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span class="brand-text">Conqueror Studios</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" id="siteNav" role="navigation" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/projects" class="active">Projects</a>
+        <a href="/studio">Studio</a>
+        <a href="/waitlist">Waitlist</a>
+        <a href="/support">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- PRODUCT HERO -->
+    <section class="product-hero" aria-labelledby="product-heading">
+      <div class="container">
+        <span class="eyebrow">Federated Agents · MCP · Glass Box Observability</span>
+        <h1 id="product-heading">AI Bridge</h1>
+        <p class="hero-text">
+          The federated future of agentic workflows. AI Bridge unifies fragmented AI tools into a single, observable, and self-correcting ecosystem — the "USB-C" for AI tools, powered by the Model Context Protocol.
+        </p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:24px 0 0;">
+          <a href="https://github.com/Joker5514/Ai-bridge" target="_blank" rel="noreferrer noopener" class="btn btn-primary">View on GitHub &rarr;</a>
+          <a href="/waitlist" class="btn btn-secondary">Join Waitlist</a>
+        </div>
+      </div>
+      <img src="/assets/ai_bridge_overview.png" alt="AI Bridge — federated agentic workflow platform" class="product-hero-img" />
+    </section>
+
+    <!-- CYCLIC GRAPHS VS LINEAR AUTOMATION -->
+    <section class="slide" id="architecture" aria-labelledby="arch-heading" style="background:var(--surface);">
+      <div class="slide-inner">
+        <div class="slide-copy reveal">
+          <span class="eyebrow">Core Architecture</span>
+          <h2 id="arch-heading">Cyclic graphs, not linear pipelines</h2>
+          <p>Unlike linear automation tools like Zapier, AI Bridge uses cyclic graphs that allow agents to reason, fail, and self-correct in real time. Every agent can loop back, retry, and improve — not just pass data forward.</p>
+          <p>Powered by the Model Context Protocol, AI Bridge provides a universal, plug-and-play connection between agents and external tools — from GitHub and local databases to any MCP-compatible service.</p>
+          <ul class="feature-bullets">
+            <li><strong>Cyclic State Machines</strong> — LangGraph-powered loops for reasoning and self-correction.</li>
+            <li><strong>MCP Universal Connector</strong> — Plug agents into any tool without custom integrations.</li>
+            <li><strong>Real-Time Observability</strong> — Every thought and tool call mapped to a visual graph.</li>
+            <li><strong>Time Travel Debugging</strong> — Rewind agent state to any prior checkpoint.</li>
+          </ul>
+        </div>
+        <div class="reveal delay-1" style="display:flex;flex-direction:column;gap:16px;">
+          <div class="studio-box">
+            <span>vs. Linear Automation</span>
+            <ul>
+              <li>Zapier / n8n: Step 1 → Step 2 → End. No recovery on failure.</li>
+              <li>AI Bridge: Agents reason, detect failure, and self-correct autonomously.</li>
+              <li>Cyclic graphs support the full OODA loop — observe, orient, decide, act.</li>
+            </ul>
+          </div>
+          <div class="studio-box">
+            <span>The "USB-C" for AI Tools</span>
+            <ul>
+              <li>One protocol connects any agent to any tool.</li>
+              <li>GitHub, databases, APIs, custom services — all MCP-addressable.</li>
+              <li>Add new tools without rewriting agent logic.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GLASS BOX OBSERVABILITY -->
+    <section class="slide" id="glass-box" aria-labelledby="glass-heading">
+      <div class="slide-inner reversed">
+        <div class="slide-copy reveal">
+          <span class="eyebrow">Glass Box Observability</span>
+          <h2 id="glass-heading">Every decision visible in real time</h2>
+          <p>AI Bridge renders every agent thought and tool call as a node in a live visual graph built on React Flow. You can inspect, intervene, edit code, or time-travel to a previous state — at any moment.</p>
+          <blockquote>
+            "The difference between a black box and a glass box is the difference between hoping and knowing." — AI Bridge design philosophy
+          </blockquote>
+          <table class="compare-table" style="margin-top:16px;">
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>AI Bridge</th>
+                <th>Standard Agents</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Decision Visibility</td><td style="color:var(--success);">Full graph view</td><td>Black box</td></tr>
+              <tr><td>Human Intervention</td><td style="color:var(--success);">Any node, any time</td><td>None</td></tr>
+              <tr><td>Time Travel</td><td style="color:var(--success);">Checkpoint replay</td><td>Not available</td></tr>
+              <tr><td>Code Sandbox</td><td style="color:var(--success);">E2B Firecracker VMs</td><td>Simulated</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="reveal delay-1" style="display:flex;flex-direction:column;gap:16px;">
+          <div class="studio-box">
+            <span>The Code Researcher Pattern</span>
+            <ul>
+              <li>Research agents launch secure sandboxes to verify technical claims.</li>
+              <li>Code runs in E2B Firecracker VMs — not simulated, actual execution.</li>
+              <li>Results feed back into the reasoning graph for validation.</li>
+            </ul>
+          </div>
+          <div class="studio-box">
+            <span>Built On</span>
+            <ul>
+              <li>Next.js 15 · LangGraph · MCP</li>
+              <li>React Flow visual graph UI</li>
+              <li>E2B Firecracker VM sandboxes</li>
+              <li>TypeScript end-to-end</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE GLASS BOX VIDEO -->
+    <section class="media-section" id="glass-box-video" aria-labelledby="video-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Deep Dive</span>
+          <h2 id="video-heading">AI Bridge: The Glass Box</h2>
+          <p>A full walkthrough of AI Bridge's visual observability system — how agents are rendered as live graphs, how interventions work, and how the Code Researcher pattern verifies claims in real sandboxes.</p>
+        </div>
+        <div class="media-embed reveal">
+          <iframe
+            src="https://drive.google.com/file/d/1dKEnkBHVx8_I0f-5YzaTGKKnW_h5bR3x/preview"
+            allow="autoplay"
+            title="AI Bridge: The Glass Box — observability deep dive"
+          ></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEDERATED ARCHITECTURE DECK -->
+    <section class="pptx-section" id="architecture-deck" aria-labelledby="deck-heading" style="background:var(--surface);">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Technical Presentation</span>
+          <h2 id="deck-heading">Federated Architecture Blueprint</h2>
+          <p>The complete technical blueprint for AI Bridge's federated architecture — MCP topology, cyclic graph design, sandbox execution model, and deployment strategy.</p>
+        </div>
+        <div class="pptx-embed reveal">
+          <iframe
+            src="https://drive.google.com/file/d/1QXhDMOF7Ad-Q6iFZ-DCoIgu4s3ziIJhU/preview"
+            title="AI Bridge Federated Architecture — technical deck"
+          ></iframe>
+        </div>
+        <div style="text-align:center;margin-top:20px;">
+          <a href="https://drive.google.com/file/d/1QXhDMOF7Ad-Q6iFZ-DCoIgu4s3ziIJhU/view" target="_blank" rel="noreferrer noopener" class="btn btn-secondary">Open Full Deck &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="product-cta" aria-labelledby="cta-heading">
+      <div class="container">
+        <span class="eyebrow">Build in the open. Reason in the clear.</span>
+        <h2 id="cta-heading">See every agent decision as it happens</h2>
+        <p>AI Bridge makes agentic workflows transparent, interruptible, and verifiable — no more black boxes.</p>
+        <div class="cta-actions">
+          <a href="https://github.com/Joker5514/Ai-bridge" target="_blank" rel="noreferrer noopener" class="btn btn-primary">View on GitHub &rarr;</a>
+          <a href="/waitlist" class="btn btn-secondary">Get Early Access</a>
+          <a href="/projects" class="btn btn-secondary">&larr; All Projects</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-wrap">
+      <p>&copy; 2026 Conqueror Studios. Independent AI R&amp;D. Built in the open.</p>
+      <div class="footer-links">
+        <a href="/projects">Projects</a>
+        <a href="/orchestrai">OrchestrAI Nexus</a>
+        <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
+        <a href="mailto:r.jordan@conqueror-studios.com">Email</a>
+        <a href="#main-content">Back to top &uarr;</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
