@@ -109,6 +109,30 @@
     .feature-bullets li::before { content: '\2192'; position: absolute; left: 0; color: var(--accent); }
     .feature-bullets strong { color: var(--text-bright); }
 
+    /* ── Video / media ── */
+    .media-section { padding: 80px 0; background: var(--surface); }
+    .media-embed {
+      width: 100%;
+      max-width: 900px;
+      margin: 32px auto 0;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.4), 0 0 60px rgba(255,34,68,0.08);
+      display: block;
+    }
+    .media-embed video {
+      width: 100%;
+      display: block;
+    }
+    .media-downloads {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
     /* ── CTA ── */
     .product-cta {
       padding: 80px 0;
@@ -289,6 +313,26 @@
       </div>
     </section>
 
+    <!-- MASTERCLASS VIDEO -->
+    <section class="media-section" id="masterclass" aria-labelledby="masterclass-heading">
+      <div class="container">
+        <div class="section-heading reveal">
+          <span class="eyebrow">Deep Dive</span>
+          <h2 id="masterclass-heading">VoiceIsolate Pro v24 Masterclass</h2>
+          <p>A full walkthrough of the Neural-Sync&trade; architecture, real-time DSP pipeline, and GPU-accelerated processing that powers VoiceIsolate Pro.</p>
+        </div>
+        <div class="media-embed reveal">
+          <video controls preload="metadata" poster="/assets/voiceisolate_hero.png">
+            <source src="/assets/VoiceIsolate_Pro_v24_Masterclass.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div class="media-downloads reveal">
+          <a href="https://drive.google.com/uc?export=download&id=1BhuZOBpSXZXxaMaIPmMKP9yAHG8hDZzh" class="btn btn-secondary" target="_blank" rel="noreferrer noopener">Download Video &darr;</a>
+          <a href="https://drive.google.com/uc?export=download&id=1HNSknNXmOgE5A1__-h9HjXh_YM5I-jJl" class="btn btn-secondary" target="_blank" rel="noreferrer noopener">Technical Architecture Deck &darr;</a>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section class="product-cta" aria-labelledby="cta-heading">
       <div class="container">
@@ -312,7 +356,7 @@
         <a href="/projects">Projects</a>
         <a href="/orchestrai">OrchestrAI Nexus</a>
         <a href="https://github.com/Joker5514" target="_blank" rel="noreferrer noopener">GitHub</a>
-        <a href="mailto:hello@conquerorstudios.dev">Email</a>
+        <a href="mailto:r.jordan@conqueror-studios.com">Email</a>
         <a href="#main-content">Back to top &uarr;</a>
       </div>
     </div>
