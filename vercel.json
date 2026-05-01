@@ -8,7 +8,10 @@
     { "source": "/support",       "destination": "/support" },
     { "source": "/confidential",  "destination": "/confidential" },
     { "source": "/orchestrai",    "destination": "/orchestrai" },
-    { "source": "/voiceisolate",  "destination": "/voiceisolate" }
+    { "source": "/voiceisolate",  "destination": "/voiceisolate" },
+    { "source": "/aibridge",      "destination": "/aibridge" },
+    { "source": "/aicounselor",   "destination": "/aicounselor" },
+    { "source": "/lovemenot",     "destination": "/lovemenot" }
   ],
   "headers": [
     {
