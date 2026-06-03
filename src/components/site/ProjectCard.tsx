@@ -1,4 +1,5 @@
 import Link from "next/link";
+import HudCorners from "@/components/site/HudCorners";
 import type { Project, ProjectStatus } from "@/lib/projects";
 
 const statusStyles: Record<ProjectStatus, string> = {
@@ -22,11 +23,7 @@ export default function ProjectCard({ project }: { project: Project }) {
       {...wrapperProps}
       className="group relative flex flex-col overflow-hidden border border-[#e84040]/15 bg-[#0a0a10] transition-all hover:border-[#e84040]/35 hover:shadow-[0_0_40px_-15px_rgba(232,64,64,0.4)]"
     >
-      {/* HUD corner accents */}
-      <span className="pointer-events-none absolute left-0 top-0 z-10 h-3 w-3 border-l-2 border-t-2 border-[#e84040]/55" />
-      <span className="pointer-events-none absolute right-0 top-0 z-10 h-3 w-3 border-r-2 border-t-2 border-[#e84040]/55" />
-      <span className="pointer-events-none absolute bottom-0 left-0 z-10 h-3 w-3 border-b-2 border-l-2 border-[#e84040]/55" />
-      <span className="pointer-events-none absolute bottom-0 right-0 z-10 h-3 w-3 border-b-2 border-r-2 border-[#e84040]/55" />
+      <HudCorners color="#e84040" size={12} opacity={0.55} className="z-10" />
 
       {project.image && (
         <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-[#e84040]/10">

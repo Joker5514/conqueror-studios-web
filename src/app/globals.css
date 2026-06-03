@@ -75,6 +75,7 @@
       linear-gradient(90deg, rgba(232, 64, 64, 0.05) 1px, transparent 1px);
     background-size: 56px 56px;
     background-position: -1px -1px;
+    -webkit-mask-image: radial-gradient(ellipse 100% 70% at 50% 0%, #000 20%, transparent 100%);
     mask-image: radial-gradient(ellipse 100% 70% at 50% 0%, #000 20%, transparent 100%);
   }
 
@@ -185,11 +186,11 @@
     text-transform: uppercase;
     clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
     transition: all 150ms ease;
-    box-shadow: 0 0 30px -6px rgba(232, 64, 64, 0.55);
+    filter: drop-shadow(0 0 12px rgba(232, 64, 64, 0.55));
   }
   .cs-btn-deploy:hover {
     background: #f04848;
-    box-shadow: 0 0 45px -6px rgba(232, 64, 64, 0.75);
+    filter: drop-shadow(0 0 20px rgba(232, 64, 64, 0.75));
     transform: translateY(-1px);
   }
 

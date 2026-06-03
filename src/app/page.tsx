@@ -1,26 +1,7 @@
 import Link from "next/link";
+import HudCorners from "@/components/site/HudCorners";
 import ProjectCard from "@/components/site/ProjectCard";
 import { flagshipProjects, inStudyProjects, repoCategories } from "@/lib/projects";
-
-function HudCorners({
-  color = "#e84040",
-  size = 12,
-  opacity = 0.5,
-}: {
-  color?: string;
-  size?: number;
-  opacity?: number;
-}) {
-  const s = { borderColor: color, width: size, height: size, opacity };
-  return (
-    <>
-      <span className="pointer-events-none absolute left-0 top-0 border-l-2 border-t-2" style={s} />
-      <span className="pointer-events-none absolute right-0 top-0 border-r-2 border-t-2" style={s} />
-      <span className="pointer-events-none absolute bottom-0 left-0 border-b-2 border-l-2" style={s} />
-      <span className="pointer-events-none absolute bottom-0 right-0 border-b-2 border-r-2" style={s} />
-    </>
-  );
-}
 
 export default function HomePage() {
   return (
@@ -178,7 +159,7 @@ export default function HomePage() {
                 {
                   t: "Determinism and evals",
                   b: "Every flow ships with golden replays, regression suites, and drift detection from day one.",
-                  accent: "rgba(255,255,255,0.35)",
+                  accent: "#ffffff",
                 },
               ] as const).map((x) => (
                 <div
