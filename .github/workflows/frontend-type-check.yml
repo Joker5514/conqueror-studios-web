@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Verify Next.js entrypoints
+        run: bun run verify:next-entrypoints
+
       - name: Run TypeScript type check
         run: bun run typecheck
 
