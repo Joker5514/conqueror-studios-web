@@ -79,19 +79,34 @@ function getServerSupabaseUrl(): string | undefined {
   return process.env.NEXT_PUBLIC_SUPABASE_URL;
 }
 
-export function getSupabaseServerEnv() {
+export interface SupabaseServerEnv {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+}
+
+export function tryGetSupabaseServerEnv(): SupabaseServerEnv | null {
   const supabaseUrl = getServerSupabaseUrl();
   const supabaseAnonKey =
     process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(MISSING_SUPABASE_SERVER_ENV_ERROR);
+    return null;
   }
 
   return {
     supabaseUrl,
     supabaseAnonKey,
   };
+}
+
+export function getSupabaseServerEnv(): SupabaseServerEnv {
+  const env = tryGetSupabaseServerEnv();
+
+  if (!env) {
+    throw new Error(MISSING_SUPABASE_SERVER_ENV_ERROR);
+  }
+
+  return env;
 }
 
 export function getSupabaseAdminEnv() {
