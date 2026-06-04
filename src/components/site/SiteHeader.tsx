@@ -34,25 +34,22 @@ export default function SiteHeader() {
     <header
       className={`sticky top-0 z-50 transition-colors ${
         scrolled
-          ? "border-b border-white/10 bg-black/60 backdrop-blur-xl"
+          ? "border-b border-[#e84040]/15 bg-black/70 backdrop-blur-xl"
           : "border-b border-transparent"
       }`}
     >
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link
           href="/"
-          className="group flex items-center gap-2.5"
+          className="group flex items-center"
           aria-label="Conqueror Studios home"
         >
-          <span className="grid h-7 w-7 place-items-center rounded-md border border-white/15 bg-gradient-to-br from-[#ff3355] to-[#7a0f1f] text-[12px] font-bold text-white shadow-[0_0_20px_-4px_rgba(255,51,85,0.6)]">
-            C
-          </span>
-          <span className="text-[13px] font-medium tracking-tight">
-            Conqueror Studios
-          </span>
-          <span className="hidden text-[10px] font-mono uppercase tracking-[0.16em] text-white/40 sm:inline">
-            / Lab
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/assets/conqueror-logo.png"
+            alt="Conqueror Studios"
+            className="h-10 w-auto"
+          />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
@@ -64,10 +61,10 @@ export default function SiteHeader() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-md px-3 py-1.5 text-[13px] transition-colors ${
+                className={`font-mono px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] transition-colors ${
                   active
                     ? "text-white"
-                    : "text-white/55 hover:text-white"
+                    : "text-white/45 hover:text-white"
                 }`}
               >
                 {link.label}
@@ -76,24 +73,24 @@ export default function SiteHeader() {
           })}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
           <Link
             href="https://github.com/Joker5514"
             target="_blank"
             rel="noreferrer noopener"
-            className="btn btn-ghost text-[13px]"
+            className="font-mono text-[11px] uppercase tracking-[0.14em] text-white/40 transition-colors hover:text-white"
           >
             GitHub
           </Link>
-          <Link href="/waitlist" className="btn btn-primary text-[13px]">
-            Join waitlist
+          <Link href="/waitlist" className="cs-btn-deploy py-2.5 px-5 text-[10px]">
+            DEPLOY AGENT →
           </Link>
         </div>
 
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="md:hidden flex h-9 w-9 items-center justify-center rounded-md border border-white/15 text-white/80"
+          className="md:hidden flex h-9 w-9 items-center justify-center border border-[#e84040]/20 text-white/80 bg-[#0a0a10]"
           aria-label="Toggle menu"
           aria-expanded={open}
         >
@@ -118,22 +115,22 @@ export default function SiteHeader() {
       </div>
 
       {open && (
-        <div className="border-t border-white/10 bg-black/85 backdrop-blur-xl md:hidden">
+        <div className="border-t border-[#e84040]/15 bg-black/90 backdrop-blur-xl md:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-6 py-4">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-md px-2 py-2 text-sm text-white/80 hover:bg-white/5 hover:text-white"
+                className="font-mono px-2 py-2.5 text-[11px] uppercase tracking-[0.14em] text-white/70 hover:bg-white/5 hover:text-white"
               >
                 {link.label}
               </Link>
             ))}
             <Link
               href="/waitlist"
-              className="btn btn-primary mt-2 justify-center"
+              className="cs-btn-deploy mt-3 justify-center"
             >
-              Join waitlist
+              DEPLOY AGENT →
             </Link>
           </nav>
         </div>
