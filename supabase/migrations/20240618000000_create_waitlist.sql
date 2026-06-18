@@ -12,6 +12,7 @@ create table if not exists public.waitlist (
 -- Unique on email so duplicate submissions silently upsert rather than error.
 create unique index if not exists waitlist_email_idx on public.waitlist (email);
 
--- No row-level security — inserts come from the server action using the
--- service-role key, so RLS would be bypassed anyway.
+-- Enable RLS to deny all direct public access. The server action inserts
+-- via the service-role key, which bypasses RLS, so no explicit policies
+-- are needed here.
 alter table public.waitlist enable row level security;

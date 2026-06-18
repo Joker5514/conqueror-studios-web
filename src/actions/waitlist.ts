@@ -26,10 +26,13 @@ export async function signUpForWaitlist(
   const interests = formData.getAll("interest") as string[];
   const message = ((formData.get("message") as string | null) ?? "").trim();
 
-  // Persist to Supabase when configured. Upserts on email so duplicate
-  // submissions update the record rather than returning an error.
+  // Persist to Supabase when fully configured. Guard on the service-role key
+  // explicitly — tryGetSupabaseServerEnv() returns truthy even when only the
+  // anon key is present, but createAdminClient() requires the service-role key
+  // and will throw without it.
   const serverEnv = tryGetSupabaseServerEnv();
-  if (serverEnv) {
+  const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  if (serverEnv && hasServiceKey) {
     try {
       const { createAdminClient } = await import("@/lib/supabase/admin");
       const supabase = createAdminClient();
@@ -45,9 +48,11 @@ export async function signUpForWaitlist(
       );
       if (error) {
         console.error("Waitlist upsert failed", error);
+        return { ok: false, error: "Failed to save your signup. Please try again." };
       }
     } catch (err) {
       console.error("Waitlist Supabase error", err);
+      return { ok: false, error: "A server error occurred. Please try again." };
     }
   }
 
