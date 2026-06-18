@@ -6,7 +6,7 @@ import { join } from "node:path";
 
 const root = process.cwd();
 const required = [
-  "src/middleware.ts",
+  "src/proxy.ts",
   "src/app/layout.tsx",
   "src/app/page.tsx",
 ];
