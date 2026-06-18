@@ -95,6 +95,7 @@ export default function VoiceIsolatePage() {
             className="aspect-video w-full bg-black"
           >
             <source src="/assets/VoiceIsolate_Pro_v24_Masterclass.mp4" type="video/mp4" />
+            <track kind="captions" src="" label="English" default />
             Your browser does not support embedded video.
           </video>
         </div>

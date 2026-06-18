@@ -57,18 +57,8 @@ export default function SupportPage() {
       <Section className="py-20">
         <SectionHead eyebrow="Reach us" title="Pick a lane" />
         <div className="mt-10 grid gap-5 md:grid-cols-2">
-          {lanes.map((l) => {
-            const inner = (
-              <div className="panel p-6 transition-colors hover:border-white/25 hover:bg-white/[0.03]">
-                <div className="text-[15px] font-medium text-white">{l.title}</div>
-                <p className="mt-2 text-[14px] leading-relaxed text-white/55">{l.body}</p>
-                <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3 text-[13px]">
-                  <span className="text-white/65">{l.cta}</span>
-                  <span className="text-[#ff3355]">→</span>
-                </div>
-              </div>
-            );
-            return l.external ? (
+          {lanes.map((l) =>
+            l.external ? (
               <a
                 key={l.title}
                 href={l.to}
@@ -76,14 +66,28 @@ export default function SupportPage() {
                 rel="noreferrer noopener"
                 className="block"
               >
-                {inner}
+                <div className="panel p-6 transition-colors hover:border-white/25 hover:bg-white/[0.03]">
+                  <div className="text-[15px] font-medium text-white">{l.title}</div>
+                  <p className="mt-2 text-[14px] leading-relaxed text-white/55">{l.body}</p>
+                  <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3 text-[13px]">
+                    <span className="text-white/65">{l.cta}</span>
+                    <span className="text-[#ff3355]">→</span>
+                  </div>
+                </div>
               </a>
             ) : (
               <Link key={l.title} href={l.to} className="block">
-                {inner}
+                <div className="panel p-6 transition-colors hover:border-white/25 hover:bg-white/[0.03]">
+                  <div className="text-[15px] font-medium text-white">{l.title}</div>
+                  <p className="mt-2 text-[14px] leading-relaxed text-white/55">{l.body}</p>
+                  <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3 text-[13px]">
+                    <span className="text-white/65">{l.cta}</span>
+                    <span className="text-[#ff3355]">→</span>
+                  </div>
+                </div>
               </Link>
-            );
-          })}
+            )
+          )}
         </div>
       </Section>
 

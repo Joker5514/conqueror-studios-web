@@ -128,12 +128,13 @@ function Field({
   const cls =
     "mt-2 w-full rounded-md border border-white/12 bg-white/[0.02] px-3 py-2.5 text-[14px] text-white placeholder:text-white/35 outline-none transition-colors focus:border-[#e84040]";
   return (
-    <label className="block">
+    <label htmlFor={name} className="block">
       <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">
         {label}
       </span>
       {as === "textarea" ? (
         <textarea
+          id={name}
           name={name}
           required={required}
           rows={rows}
@@ -142,6 +143,7 @@ function Field({
         />
       ) : (
         <input
+          id={name}
           name={name}
           type={type}
           required={required}
