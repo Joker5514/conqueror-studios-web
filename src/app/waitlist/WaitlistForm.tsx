@@ -1,7 +1,8 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { signUpForWaitlist } from "@/actions/waitlist";
 
 const interests = [
   "AI Bridge",
@@ -14,17 +15,21 @@ const interests = [
 
 export default function WaitlistForm() {
   const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  // Submission is wired to a no-op for now. Backend (Supabase/Postmark)
-  // will replace this in a follow-up PR.
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitting(true);
-    // Simulate latency so the UX feels real during the design pass.
-    await new Promise((r) => setTimeout(r, 600));
-    setSubmitting(false);
-    setSubmitted(true);
+    const formData = new FormData(e.currentTarget);
+    setError(null);
+    startTransition(async () => {
+      const result = await signUpForWaitlist(formData);
+      if (result.ok) {
+        setSubmitted(true);
+      } else {
+        setError(result.error);
+      }
+    });
   }
 
   if (submitted) {
@@ -39,7 +44,7 @@ export default function WaitlistForm() {
           opens. In the meantime, the lab posts updates on{" "}
           <a
             href="https://github.com/Joker5514"
-            className="text-[#ff3355] hover:underline"
+            className="text-[#e84040] hover:underline"
             target="_blank"
             rel="noreferrer noopener"
           >
@@ -66,7 +71,7 @@ export default function WaitlistForm() {
           {interests.map((i) => (
             <label
               key={i}
-              className="cursor-pointer rounded-full border border-white/15 bg-white/[0.03] px-3 py-1 text-[12px] text-white/70 transition-colors has-[:checked]:border-[#ff3355] has-[:checked]:bg-[#ff3355]/15 has-[:checked]:text-white"
+              className="cursor-pointer rounded-full border border-white/15 bg-white/[0.03] px-3 py-1 text-[12px] text-white/70 transition-colors has-[:checked]:border-[#e84040] has-[:checked]:bg-[#e84040]/15 has-[:checked]:text-white"
             >
               <input type="checkbox" name="interest" value={i} className="hidden" />
               {i}
@@ -81,6 +86,11 @@ export default function WaitlistForm() {
         rows={5}
         placeholder="A short paragraph helps us route you to the right team."
       />
+      {error ? (
+        <p className="rounded-md border border-[#e84040]/30 bg-[#e84040]/10 px-4 py-3 text-[13px] text-[#e84040]">
+          {error}
+        </p>
+      ) : null}
       <div className="flex items-center justify-between gap-3 pt-2">
         <p className="text-[12px] text-white/45">
           By submitting you agree to receive occasional product updates. No
@@ -88,10 +98,10 @@ export default function WaitlistForm() {
         </p>
         <button
           type="submit"
-          disabled={submitting}
+          disabled={isPending}
           className="btn btn-primary disabled:opacity-60"
         >
-          {submitting ? "Submitting…" : "Request access"}
+          {isPending ? "Submitting…" : "Request access"}
         </button>
       </div>
     </form>
@@ -116,14 +126,15 @@ function Field({
   placeholder?: string;
 }) {
   const cls =
-    "mt-2 w-full rounded-md border border-white/12 bg-white/[0.02] px-3 py-2.5 text-[14px] text-white placeholder:text-white/35 outline-none transition-colors focus:border-[#ff3355]";
+    "mt-2 w-full rounded-md border border-white/12 bg-white/[0.02] px-3 py-2.5 text-[14px] text-white placeholder:text-white/35 outline-none transition-colors focus:border-[#e84040]";
   return (
-    <label className="block">
+    <label htmlFor={name} className="block">
       <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">
         {label}
       </span>
       {as === "textarea" ? (
         <textarea
+          id={name}
           name={name}
           required={required}
           rows={rows}
@@ -132,6 +143,7 @@ function Field({
         />
       ) : (
         <input
+          id={name}
           name={name}
           type={type}
           required={required}

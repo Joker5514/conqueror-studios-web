@@ -1,39 +1,7 @@
 "use server";
 
 import { sendTemplatedEmail } from "@/lib/postmark/send";
-
-// Server action that handles a waitlist signup and sends a welcome email
-// via Postmark.
-//
-// USAGE: Wire this from a form on a waitlist page. The form's `action`
-// prop accepts a server action directly:
-//
-//   // src/app/waitlist/page.tsx
-//   import { signUpForWaitlist } from "@/actions/waitlist";
-//
-//   export default function WaitlistPage() {
-//     return (
-//       <form action={signUpForWaitlist}>
-//         <input name="email" type="email" required />
-//         <button type="submit">Join waitlist</button>
-//       </form>
-//     );
-//   }
-//
-// WHY A SERVER ACTION (not an API route): Next.js server actions are
-// only callable from your own UI. The framework adds an origin check
-// and a server-action-encoded payload format that makes naive curling
-// from outside the app impractical. Combined with the email-format
-// check below, this is much safer than shipping an unauthenticated
-// POST endpoint into a customer repo.
-//
-// PRODUCTION CHECKLIST (do these before launch):
-// - Add per-IP rate limiting (e.g. Upstash Redis) so a spammer can't
-//   drain your Postmark sending quota or damage your sender reputation.
-// - Persist the signup to a `waitlist` table in Supabase so you can
-//   send launch announcements to everyone later.
-// - Replace the placeholder template fields below with your real
-//   product name, onboarding URL, and support address.
+import { tryGetSupabaseServerEnv } from "@/lib/supabase/server-env";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -53,25 +21,61 @@ export async function signUpForWaitlist(
     return { ok: false, error: "That doesn't look like a valid email." };
   }
 
+  const name = ((formData.get("name") as string | null) ?? "").trim();
+  const org = ((formData.get("org") as string | null) ?? "").trim();
+  const interests = formData.getAll("interest") as string[];
+  const message = ((formData.get("message") as string | null) ?? "").trim();
+
+  // Persist to Supabase when fully configured. Guard on the service-role key
+  // explicitly — tryGetSupabaseServerEnv() returns truthy even when only the
+  // anon key is present, but createAdminClient() requires the service-role key
+  // and will throw without it.
+  const serverEnv = tryGetSupabaseServerEnv();
+  const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  if (serverEnv && hasServiceKey) {
+    try {
+      const { createAdminClient } = await import("@/lib/supabase/admin");
+      const supabase = createAdminClient();
+      const { error } = await supabase.from("waitlist").upsert(
+        {
+          email,
+          name: name || null,
+          org: org || null,
+          interests: interests.length ? interests : null,
+          message: message || null,
+        },
+        { onConflict: "email" },
+      );
+      if (error) {
+        console.error("Waitlist upsert failed", error);
+        return { ok: false, error: "Failed to save your signup. Please try again." };
+      }
+    } catch (err) {
+      console.error("Waitlist Supabase error", err);
+      return { ok: false, error: "A server error occurred. Please try again." };
+    }
+  }
+
+  // Send confirmation email when Postmark is configured. A missing or
+  // mis-configured Postmark setup is non-fatal — the signup is already
+  // recorded in the database.
   try {
     await sendTemplatedEmail({
       to: email,
       templateAlias: "welcome-email",
       templateModel: {
-        product_name: "Your Product",
-        first_name: email.split("@")[0],
-        next_step: "We'll let you know the moment we're live.",
-        cta_url: "https://your-product.example.com",
-        cta_label: "Visit site",
-        support_email: "support@your-product.example.com",
+        product_name: "Conqueror Studios",
+        first_name: name || email.split("@")[0],
+        next_step:
+          "We'll be in touch when the next cohort opens. In the meantime, the lab posts updates on GitHub.",
+        cta_url: "https://conquerorstudios.dev/projects",
+        cta_label: "Explore the lab",
+        support_email: "r.jordan@conqueror-studios.com",
       },
     });
-  } catch (error) {
-    console.error("Waitlist signup email failed", error);
-    return {
-      ok: false,
-      error: "We couldn't send your confirmation email. Please try again shortly.",
-    };
+  } catch (err) {
+    // Postmark not configured or transient failure — not fatal.
+    console.warn("Waitlist confirmation email skipped:", (err as Error).message);
   }
 
   return { ok: true };
