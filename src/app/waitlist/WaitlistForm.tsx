@@ -3,15 +3,7 @@
 
 import { useState, useTransition } from "react";
 import { signUpForWaitlist } from "@/actions/waitlist";
-
-const interests = [
-  "AI Bridge",
-  "OrchestrAI Nexus",
-  "VoiceIsolate Pro",
-  "AI Counselor",
-  "Love-Me-Not",
-  "Other",
-];
+import { WAITLIST_INTERESTS } from "@/lib/waitlist";
 
 export default function WaitlistForm() {
   const [submitted, setSubmitted] = useState(false);
@@ -58,6 +50,17 @@ export default function WaitlistForm() {
 
   return (
     <form onSubmit={onSubmit} className="panel-strong space-y-5 p-8">
+      {/* Honeypot — hidden from real users; bots that fill every field trip it. */}
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="website">Leave this field empty</label>
+        <input
+          id="website"
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Name" name="name" required />
         <Field label="Email" name="email" type="email" required />
@@ -68,7 +71,7 @@ export default function WaitlistForm() {
           Interested in
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {interests.map((i) => (
+          {WAITLIST_INTERESTS.map((i) => (
             <label
               key={i}
               className="cursor-pointer rounded-full border border-white/15 bg-white/[0.03] px-3 py-1 text-[12px] text-white/70 transition-colors has-[:checked]:border-[#e84040] has-[:checked]:bg-[#e84040]/15 has-[:checked]:text-white"

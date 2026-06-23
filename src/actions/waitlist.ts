@@ -2,29 +2,49 @@
 
 import { sendTemplatedEmail } from "@/lib/postmark/send";
 import { tryGetSupabaseServerEnv } from "@/lib/supabase/server-env";
+import { WAITLIST_INTERESTS, WAITLIST_MAX_LENGTHS } from "@/lib/waitlist";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ALLOWED_INTERESTS = new Set<string>(WAITLIST_INTERESTS);
 
 export type WaitlistSignupResult =
   | { ok: true }
   | { ok: false; error: string };
 
+function readField(formData: FormData, key: string): string {
+  const value = formData.get(key);
+  return typeof value === "string" ? value.trim() : "";
+}
+
 export async function signUpForWaitlist(
   formData: FormData,
 ): Promise<WaitlistSignupResult> {
+  // Honeypot: a hidden field real users never see. Bots that fill every input
+  // trip it. Pretend success so we don't reveal the trap, but do nothing.
+  if (readField(formData, "website")) {
+    return { ok: true };
+  }
+
   const rawEmail = formData.get("email");
   if (typeof rawEmail !== "string") {
     return { ok: false, error: "Email is required." };
   }
   const email = rawEmail.trim().toLowerCase();
-  if (!EMAIL_PATTERN.test(email)) {
+  if (!EMAIL_PATTERN.test(email) || email.length > WAITLIST_MAX_LENGTHS.email) {
     return { ok: false, error: "That doesn't look like a valid email." };
   }
 
-  const name = ((formData.get("name") as string | null) ?? "").trim();
-  const org = ((formData.get("org") as string | null) ?? "").trim();
-  const interests = formData.getAll("interest") as string[];
-  const message = ((formData.get("message") as string | null) ?? "").trim();
+  // Bound free-text fields and whitelist interests so a single request can't
+  // store oversized or arbitrary values.
+  const name = readField(formData, "name").slice(0, WAITLIST_MAX_LENGTHS.name);
+  const org = readField(formData, "org").slice(0, WAITLIST_MAX_LENGTHS.org);
+  const message = readField(formData, "message").slice(
+    0,
+    WAITLIST_MAX_LENGTHS.message,
+  );
+  const interests = (formData.getAll("interest") as string[]).filter(
+    (interest) => ALLOWED_INTERESTS.has(interest),
+  );
 
   // Persist to Supabase when fully configured. Guard on the service-role key
   // explicitly — tryGetSupabaseServerEnv() returns truthy even when only the
@@ -54,6 +74,13 @@ export async function signUpForWaitlist(
       console.error("Waitlist Supabase error", err);
       return { ok: false, error: "A server error occurred. Please try again." };
     }
+  } else {
+    // No database configured: the signup is not persisted. Surface this loudly
+    // so a misconfigured deploy doesn't silently drop signups while still
+    // returning success to the user.
+    console.warn(
+      "Waitlist not persisted: Supabase server env or service-role key is missing.",
+    );
   }
 
   // Send confirmation email when Postmark is configured. A missing or
