@@ -16,7 +16,7 @@ Run all three checks before finishing changes: `bun run lint && bun run typechec
 
 ## Architecture
 
-This is the marketing and R&D-facing website for **Conqueror Studios**, an independent AI lab. The stack is **Next.js 16 App Router**, **React 19**, **TypeScript 6** (strict), **Tailwind 4**, **Supabase** (SSR), **React Query 5**, **Postmark**, and **Stripe**. Package manager is **Bun**.
+This is the marketing and R&D-facing website for **Conqueror Studios**, an independent AI lab. The stack is **Next.js 15 App Router**, **React 19**, **TypeScript 5** (strict), **Tailwind 4**, **Supabase** (SSR), **React Query 5**, **Postmark**, and **Stripe**. Package manager is **Bun**.
 
 ### App structure
 
