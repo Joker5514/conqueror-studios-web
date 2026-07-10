@@ -7,9 +7,11 @@ import { useMountEffect } from "@/hooks/useMountEffect";
 
 const navLinks = [
   { href: "/projects", label: "Projects" },
+  { href: "/agents", label: "Agents" },
   { href: "/studio", label: "Studio" },
   { href: "/waitlist", label: "Waitlist" },
   { href: "/support", label: "Support" },
+  { href: "/console", label: "Console" },
 ];
 
 export default function SiteHeader() {

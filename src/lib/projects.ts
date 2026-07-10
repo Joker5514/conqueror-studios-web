@@ -22,8 +22,8 @@ export const flagshipProjects: Project[] = [
     status: "flagship",
     statusLabel: "Flagship",
     summary:
-      "The conductor of your AI orchestra. Coordinates specialized agents with intelligent routing, unified memory, and seamless execution across the agentic mesh.",
-    chips: ["Python", "Multi-agent topologies", "Eval pipelines"],
+      "FastAPI WebSocket backbone, real-time STT→LLM→TTS voice loop, NVIDIA NIM coding agent (Planner→Coder→Executor→Debugger ReAct loop), LangGraph-style orchestration graphs, and Letta-inspired GraphRAG memory. Phase 7: AI economics + inter-AI marketplace.",
+    chips: ["Python", "FastAPI", "LangGraph", "NVIDIA NIM", "GraphRAG", "ElevenLabs"],
     image: "/assets/orchestrai_hero.png",
     github: "https://github.com/Joker5514/orchestrai-nexus",
   },
@@ -31,14 +31,14 @@ export const flagshipProjects: Project[] = [
     slug: "aibridge",
     href: "/aibridge",
     name: "AI Bridge",
-    tag: "Federated Agents · MCP",
+    tag: "Multi-Provider · Orchestration",
     status: "core",
     statusLabel: "Core build",
     summary:
-      "The federated future of agentic workflows. Unifies fragmented AI tools into a single, observable, self-correcting ecosystem — the USB-C for AI tools, powered by MCP.",
-    chips: ["Next.js 15", "LangGraph", "MCP", "E2B Sandboxes"],
+      "Production-ready platform that chains Perplexity, Claude, OpenAI, Grok, Groq, and Abacus into sequential or parallel workflows. LangChain unified wrapper, AES-256 Fernet key encryption, async SQLAlchemy conversation persistence, and real-time per-model cost tracking.",
+    chips: ["Python", "FastAPI", "React", "LangChain", "SQLAlchemy", "AES-256"],
     image: "/assets/ai_bridge_overview.png",
-    github: "https://github.com/Joker5514/Ai-bridge",
+    github: "https://github.com/Joker5514/ai-bridge-v2",
   },
   {
     slug: "voiceisolate",
@@ -123,7 +123,7 @@ export const repoCategories: RepoCategory[] = [
     dotClass: "bg-[#ff3355] shadow-[0_0_0_4px_rgba(255,51,85,0.15)]",
     entries: [
       { name: "orchestrai-nexus", href: "https://github.com/Joker5514/orchestrai-nexus", lang: "Python", body: "Advanced AI orchestration framework — multi-agent collaboration, quantum-inspired routing, ethical governance." },
-      { name: "Ai-bridge", href: "https://github.com/Joker5514/Ai-bridge", lang: "TypeScript", body: "Federated agentic workbench with MCP + LangGraph cyclic state machines and React Flow visualization." },
+      { name: "ai-bridge-v2", href: "https://github.com/Joker5514/ai-bridge-v2", lang: "Python / React", body: "Multi-provider orchestration platform — LangChain wrapper for Perplexity, Claude, OpenAI, Grok, Groq, Abacus. AES-256 key vault, async SQLAlchemy persistence, real-time cost tracking." },
       { name: "orchestrai-nexus-auto", lang: "Private", body: "OrchestrAI Nexus with automatic approval workflows for multi-AI orchestration pipelines." },
       { name: "orchestrai-github-pr-agent", lang: "Python", body: "Multi-agent swarm intelligence for automated GitHub PR review with creator authority integration." },
       { name: "unified-ai-orchestration-system", lang: "Python", body: "Multi-platform AI orchestration integrating Claude, Gemini, Grok with intelligent routing and threads." },
