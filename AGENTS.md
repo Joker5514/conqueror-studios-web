@@ -18,3 +18,20 @@
 
 - Run `bun run lint`, `bun run typecheck`, and `bun run test` before finishing changes.
 - Preserve the seeded Next.js, Bun, Tailwind, and React Query baseline instead of re-scaffolding the app.
+
+## Console Rules
+
+- `src/app/console/**` routes are protected. Every `layout.tsx` in this subtree must perform a
+  server-side Supabase session check and redirect unauthenticated visitors to `/waitlist`.
+- `src/app/api/nexus/route.ts` is the **only** place the `NEXUS_URL` env var is used.
+  UI components call `/api/nexus` — never the Nexus service directly.
+- `src/app/api/nexus/schema/route.ts` is the **only** place the `BRIDGE_URL` env var is used.
+- Trace data from Nexus is displayed read-only. The console never mutates Nexus or Bridge state.
+- Use React Query for all console data fetching (`useNexusRun`, `useNexusSchema`).
+  No raw `fetch()` calls in components.
+
+## Service Integration Rules
+
+- `NEXUS_URL` — env var pointing to orchestrai-nexus. Used only in `src/app/api/nexus/route.ts`.
+- `BRIDGE_URL` — env var pointing to ai_bridge. Used only in `src/app/api/nexus/schema/route.ts`.
+- Both vars must be set in Vercel environment settings. They are never exposed to the browser bundle.
