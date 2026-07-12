@@ -10,8 +10,12 @@ function isIgnoredPath(filePath) {
   const normalized = filePath.split(path.sep).join("/");
   return (
     normalized.includes("/__tests__/") ||
+    normalized.endsWith(".test.js") ||
+    normalized.endsWith(".test.jsx") ||
     normalized.endsWith(".test.ts") ||
     normalized.endsWith(".test.tsx") ||
+    normalized.endsWith(".spec.js") ||
+    normalized.endsWith(".spec.jsx") ||
     normalized.endsWith(".spec.ts") ||
     normalized.endsWith(".spec.tsx") ||
     normalized.endsWith(".server.ts") ||

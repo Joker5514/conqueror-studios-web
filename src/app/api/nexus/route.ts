@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * src/app/api/nexus/route.ts
@@ -17,7 +17,7 @@ const NEXUS_URL = process.env.NEXUS_URL ?? "http://localhost:8000";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── Auth guard ────────────────────────────────────────────────────────────
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

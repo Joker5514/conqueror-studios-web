@@ -1,3 +1,14 @@
 {
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "env": {
+    "NEXUS_URL": "@nexus-url",
+    "BRIDGE_URL": "@bridge-url",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_SUPABASE_URL": "@next-public-supabase-url",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next-public-supabase-anon-key"
+    }
+  }
 }

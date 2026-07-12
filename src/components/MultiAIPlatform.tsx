@@ -125,6 +125,51 @@ const DEFAULT_STEPS: WorkflowStep[] = [
 
 const STORAGE_KEY = "ai_bridge_workflows";
 
+// ── Standalone API call helper (defined outside component to avoid hoisting) ─
+
+async function callProvider(
+  provider: ProviderId,
+  model: string,
+  messages: { role: string; content: string }[],
+  apiKey: string,
+  maxRetries: number,
+  attempt = 1,
+): Promise<string> {
+  const config = PROVIDER_CONFIG[provider];
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  let body: string;
+
+  if (provider === "claude") {
+    headers["x-api-key"] = apiKey;
+    headers["anthropic-version"] = "2023-06-01";
+    body = JSON.stringify({
+      model,
+      max_tokens: 4096,
+      messages: messages.filter((m) => m.role !== "system"),
+      system: messages.find((m) => m.role === "system")?.content,
+    });
+  } else {
+    headers["Authorization"] = `Bearer ${apiKey}`;
+    body = JSON.stringify({ model, messages, max_tokens: 4096 });
+  }
+
+  const res = await fetch(config.endpoint, { method: "POST", headers, body });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = (err as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`;
+    if (attempt < maxRetries) {
+      await new Promise((r) => setTimeout(r, 1000 * attempt));
+      return callProvider(provider, model, messages, apiKey, maxRetries, attempt + 1);
+    }
+    throw new Error(msg);
+  }
+
+  const data = await res.json();
+  return provider === "claude"
+    ? (data as { content: { text: string }[] }).content[0].text
+    : (data as { choices: { message: { content: string } }[] }).choices[0].message.content;
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function MultiAIPlatform() {
@@ -155,47 +200,6 @@ export default function MultiAIPlatform() {
     }
   });
 
-  // ── API call (mirrors realAPICall from MultiAIPlatform.jsx) ──────────────
-
-  const apiCall = useCallback(
-    async (provider: ProviderId, model: string, messages: { role: string; content: string }[], apiKey: string, attempt = 1): Promise<string> => {
-      const config = PROVIDER_CONFIG[provider];
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      let body: string;
-
-      if (provider === "claude") {
-        headers["x-api-key"] = apiKey;
-        headers["anthropic-version"] = "2023-06-01";
-        body = JSON.stringify({
-          model,
-          max_tokens: 4096,
-          messages: messages.filter((m) => m.role !== "system"),
-          system: messages.find((m) => m.role === "system")?.content,
-        });
-      } else {
-        headers["Authorization"] = `Bearer ${apiKey}`;
-        body = JSON.stringify({ model, messages, max_tokens: 4096 });
-      }
-
-      const res = await fetch(config.endpoint, { method: "POST", headers, body });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const msg = (err as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`;
-        if (attempt < retryAttempts) {
-          await new Promise((r) => setTimeout(r, 1000 * attempt));
-          return apiCall(provider, model, messages, apiKey, attempt + 1);
-        }
-        throw new Error(msg);
-      }
-
-      const data = await res.json();
-      return provider === "claude"
-        ? (data as { content: { text: string }[] }).content[0].text
-        : (data as { choices: { message: { content: string } }[] }).choices[0].message.content;
-    },
-    [retryAttempts],
-  );
-
   // ── Execute workflow (mirrors executeWorkflow from MultiAIPlatform.jsx) ───
 
   const executeWorkflow = useCallback(async () => {
@@ -220,7 +224,7 @@ export default function MultiAIPlatform() {
             step.usesPreviousOutput && prev
               ? `${step.instruction}\n\nPrevious output:\n${prev.content}`
               : `${step.instruction}\n\nUser prompt: ${prompt}`;
-          const content = await apiCall(step.provider, step.model, [{ role: "user", content: content_msg }], key);
+          const content = await callProvider(step.provider, step.model, [{ role: "user", content: content_msg }], key, retryAttempts);
           const result: StepResult = { stepId: step.id, provider: step.provider, model: step.model, content, timestamp: new Date().toISOString() };
           stepResults.push(result);
           setResults([...stepResults]);
@@ -230,7 +234,7 @@ export default function MultiAIPlatform() {
           enabled.map(async (step) => {
             const key = apiKeys[step.provider];
             if (!key) throw new Error(`Missing API key for ${PROVIDER_CONFIG[step.provider].name}`);
-            const content = await apiCall(step.provider, step.model, [{ role: "user", content: `${step.instruction}\n\nUser prompt: ${prompt}` }], key);
+            const content = await callProvider(step.provider, step.model, [{ role: "user", content: `${step.instruction}\n\nUser prompt: ${prompt}` }], key, retryAttempts);
             return { stepId: step.id, provider: step.provider, model: step.model, content, timestamp: new Date().toISOString() } as StepResult;
           }),
         );
@@ -242,7 +246,7 @@ export default function MultiAIPlatform() {
       setIsExecuting(false);
       setCurrentStep(0);
     }
-  }, [prompt, workflow, apiKeys, executionMode, apiCall]);
+  }, [prompt, workflow, apiKeys, executionMode, retryAttempts]);
 
   // ── Workflow persistence ─────────────────────────────────────────────────
 

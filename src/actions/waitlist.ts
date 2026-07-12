@@ -1,7 +1,9 @@
 "use server";
 
+import { headers } from "next/headers";
 import { sendTemplatedEmail } from "@/lib/postmark/send";
 import { tryGetSupabaseServerEnv } from "@/lib/supabase/server-env";
+import { rateLimit } from "@/lib/rateLimit";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -12,6 +14,17 @@ export type WaitlistSignupResult =
 export async function signUpForWaitlist(
   formData: FormData,
 ): Promise<WaitlistSignupResult> {
+  // ── Rate limiting — 3 submissions per IP per minute ──────────────────────
+  const headerStore = await headers();
+  const ip =
+    headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    headerStore.get("x-real-ip") ??
+    "unknown";
+  const limit = rateLimit(`waitlist:${ip}`, { windowMs: 60_000, max: 3 });
+  if (!limit.ok) {
+    return { ok: false, error: "Too many requests. Please wait a minute before trying again." };
+  }
+
   const rawEmail = formData.get("email");
   if (typeof rawEmail !== "string") {
     return { ok: false, error: "Email is required." };

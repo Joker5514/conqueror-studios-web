@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * src/app/api/nexus/schema/route.ts
@@ -11,7 +11,7 @@ import { createServerClient } from "@/lib/supabase/server";
 const BRIDGE_URL = process.env.BRIDGE_URL ?? "http://localhost:8001";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
