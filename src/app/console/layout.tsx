@@ -20,7 +20,7 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth");
+    redirect("/waitlist");
   }
 
   return (
