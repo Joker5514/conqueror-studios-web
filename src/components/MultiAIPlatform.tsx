@@ -142,6 +142,7 @@ async function callProvider(
   if (provider === "claude") {
     headers["x-api-key"] = apiKey;
     headers["anthropic-version"] = "2023-06-01";
+    headers["anthropic-dangerous-direct-browser-access"] = "true";
     body = JSON.stringify({
       model,
       max_tokens: 4096,
