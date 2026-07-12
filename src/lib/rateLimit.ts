@@ -40,6 +40,16 @@ export function rateLimit(
   { windowMs = 60_000, max = 5 }: RateLimitOptions = {},
 ): RateLimitResult {
   const now = Date.now();
+
+  // Lazy cleanup of expired entries to prevent memory leaks in long-running processes
+  if (store.size > 1000) {
+    for (const [k, entry] of store.entries()) {
+      if (now >= entry.resetAt) {
+        store.delete(k);
+      }
+    }
+  }
+
   const existing = store.get(key);
 
   if (!existing || now >= existing.resetAt) {
