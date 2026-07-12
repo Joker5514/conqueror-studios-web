@@ -165,9 +165,19 @@ async function callProvider(
   }
 
   const data = await res.json();
-  return provider === "claude"
-    ? (data as { content: { text: string }[] }).content[0].text
-    : (data as { choices: { message: { content: string } }[] }).choices[0].message.content;
+  if (provider === "claude") {
+    const text = (data as any).content?.[0]?.text;
+    if (typeof text !== "string") {
+      throw new Error("Invalid or empty response structure from Claude API");
+    }
+    return text;
+  } else {
+    const content = (data as any).choices?.[0]?.message?.content;
+    if (typeof content !== "string") {
+      throw new Error(`Invalid or empty response structure from ${provider} API`);
+    }
+    return content;
+  }
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
