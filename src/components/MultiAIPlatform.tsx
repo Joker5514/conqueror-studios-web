@@ -150,7 +150,7 @@ async function callProvider(
       system: messages.find((m) => m.role === "system")?.content,
     });
   } else {
-    headers["Authorization"] = `Bearer ${apiKey}`;
+    headers.Authorization = `Bearer ${apiKey}`;
     body = JSON.stringify({ model, messages, max_tokens: 4096 });
   }
 
