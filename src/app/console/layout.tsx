@@ -7,7 +7,7 @@ import SignOutButton from "./SignOutButton";
  * src/app/console/layout.tsx
  *
  * Server-component auth guard for every route under /console.
- * Unauthenticated visitors are redirected to /waitlist.
+ * Unauthenticated visitors are redirected to /auth.
  *
  * Architecture rule (AGENTS.md):
  *   "Every layout.tsx in this subtree must perform a server-side
@@ -20,7 +20,7 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/waitlist");
+    redirect("/auth");
   }
 
   return (
