@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./SignOutButton";
+import ConsoleTabs from "./ConsoleTabs";
 
 /**
  * src/app/console/layout.tsx
@@ -28,10 +29,11 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
       {/* Console chrome — thin top bar distinguishing it from the public site */}
       <div className="sticky top-14 z-40 border-b border-[#e84040]/20 bg-black/60 backdrop-blur-xl">
         <div className="mx-auto flex h-10 max-w-7xl items-center gap-4 px-6">
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#e84040]">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#e84040] shrink-0">
             Owner Console
           </span>
-          <span className="font-mono text-[10px] text-white/30">
+          <ConsoleTabs />
+          <span className="ml-auto font-mono text-[10px] text-white/30 hidden sm:block">
             {user.email}
           </span>
           <SignOutButton />
