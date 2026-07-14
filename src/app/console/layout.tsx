@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * src/app/console/layout.tsx
@@ -13,7 +13,7 @@ import { createServerClient } from "@/lib/supabase/server";
  *    Supabase session check and redirect unauthenticated visitors."
  */
 export default async function ConsoleLayout({ children }: { children: ReactNode }) {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
