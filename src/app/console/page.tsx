@@ -2,25 +2,31 @@
 
 import { useState, useCallback } from "react";
 import { useNexusRun, useNexusSchema } from "@/hooks/api/useNexus";
+import type { NexusRunResult } from "@/hooks/api/useNexus";
 
 /**
  * src/app/console/page.tsx
  *
- * Owner Console — the Phase 1 backbone demo page.
+ * Owner Console — Run tab.
  *
  * Layout:
  *   ┌─ Run a query ──────────────────────────────────────┐
- *   │  textarea + Execute button                         │
+ *   │  textarea + Execute button + history pills          │
  *   └────────────────────────────────────────────────────┘
  *   ┌─ Last trace ───────────────────────────────────────┐
  *   │  routing_mode chip · latency · tool invoked        │
  *   │  result answer                                     │
  *   │  full trace JSON (collapsible)                     │
  *   └────────────────────────────────────────────────────┘
+ *   ┌─ Query history ────────────────────────────────────┐
+ *   │  last 5 runs (collapsible, click to reload query)  │
+ *   └────────────────────────────────────────────────────┘
  *   ┌─ Tool registry ────────────────────────────────────┐
  *   │  table of tools from ai_bridge /tools/schema       │
  *   └────────────────────────────────────────────────────┘
  */
+
+const MAX_HISTORY = 5;
 
 const MODE_COLORS: Record<string, string> = {
   direct:   "#34d399",
@@ -28,9 +34,17 @@ const MODE_COLORS: Record<string, string> = {
   agentic:  "#e84040",
 };
 
+interface HistoryEntry {
+  query: string;
+  result: NexusRunResult;
+  ranAt: string;
+}
+
 export default function ConsolePage() {
   const [query, setQuery] = useState("");
   const [showTrace, setShowTrace] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   const { mutate: run, data: runData, isPending, error: runError, reset } = useNexusRun();
   const { data: schema } = useNexusSchema();
@@ -39,7 +53,17 @@ export default function ConsolePage() {
     if (!query.trim()) return;
     reset();
     setShowTrace(false);
-    run({ query });
+    run(
+      { query },
+      {
+        onSuccess(data) {
+          setHistory((prev) => {
+            const entry: HistoryEntry = { query, result: data, ranAt: new Date().toISOString() };
+            return [entry, ...prev].slice(0, MAX_HISTORY);
+          });
+        },
+      },
+    );
   }, [query, run, reset]);
 
   const modeColor = runData ? (MODE_COLORS[runData.routing_mode] ?? "#fff") : "#fff";
@@ -69,12 +93,63 @@ export default function ConsolePage() {
               {isPending ? "Running…" : "Execute →"}
             </button>
             <span className="font-mono text-[10px] text-white/25">⌘↵ to run</span>
+            {history.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowHistory((v) => !v)}
+                className="ml-auto font-mono text-[10px] uppercase tracking-[0.12em] text-white/30 hover:text-white transition-colors"
+              >
+                History ({history.length}) {showHistory ? "↑" : "↓"}
+              </button>
+            )}
           </div>
         </div>
 
         {runError && (
           <div className="mt-3 rounded-xl border border-[#e84040]/30 bg-[#e84040]/[0.05] px-4 py-3 font-mono text-[12px] text-[#e84040]">
             {runError instanceof Error ? runError.message : "Request failed"}
+          </div>
+        )}
+
+        {/* ── Query history ───────────────────────────────────────────────── */}
+        {showHistory && history.length > 0 && (
+          <div className="mt-4 rounded-xl border border-white/10 overflow-hidden">
+            <div className="border-b border-white/10 bg-white/[0.02] px-4 py-2">
+              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/35">
+                Recent queries
+              </span>
+            </div>
+            <ul className="divide-y divide-white/5">
+              {history.map((h, i) => (
+                <li key={i} className="flex items-start gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => { setQuery(h.query); setShowHistory(false); }}
+                    className="flex-1 text-left text-[13px] text-white/65 hover:text-white transition-colors truncate"
+                    title={h.query}
+                  >
+                    {h.query}
+                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className="rounded-full border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em]"
+                      style={{
+                        color: MODE_COLORS[h.result.routing_mode] ?? "#fff",
+                        borderColor: `${MODE_COLORS[h.result.routing_mode] ?? "#fff"}40`,
+                      }}
+                    >
+                      {h.result.routing_mode}
+                    </span>
+                    <span className="font-mono text-[10px] text-white/25">
+                      {h.result.trace.total_latency_ms}ms
+                    </span>
+                    <span className="font-mono text-[10px] text-white/20">
+                      {new Date(h.ranAt).toLocaleTimeString()}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </section>
@@ -204,12 +279,12 @@ export default function ConsolePage() {
 // ── Risk chip ─────────────────────────────────────────────────────────────────
 
 const RISK_COLORS: Record<string, string> = {
-  "read-only":        "#34d399",
-  "write-capable":    "#f59e0b",
-  "destructive":      "#e84040",
-  "billing-sensitive":"#e84040",
-  "device-control":   "#8b5cf6",
-  "external-public":  "#0066ff",
+  "read-only":         "#34d399",
+  "write-capable":     "#f59e0b",
+  "destructive":       "#e84040",
+  "billing-sensitive": "#e84040",
+  "device-control":    "#8b5cf6",
+  "external-public":   "#0066ff",
 };
 
 function RiskChip({ risk }: { risk: string }) {

@@ -22,7 +22,9 @@ export const config = {
      * - _next/image   (Next image optimisation)
      * - favicon.ico
      * - public asset extensions
+     * - /api/health   (public uptime probe — no session needed)
+     * - /api/stripe/webhook (raw body + Stripe sig — must not be wrapped)
      */
-    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|api/health|api/stripe/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
