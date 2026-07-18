@@ -91,7 +91,7 @@ const PRICING: Record<string, Record<string, { input: number; output: number }>>
   },
 };
 
-function calculateCost(provider: string, model: string, inputTokens: number, outputTokens: number): number {
+function _calculateCost(provider: string, model: string, inputTokens: number, outputTokens: number): number {
   const rates = PRICING[provider]?.[model] ?? { input: 0, output: 0 };
   return (inputTokens * rates.input) / 1e6 + (outputTokens * rates.output) / 1e6;
 }
@@ -486,15 +486,21 @@ export default function MultiAIPlatform() {
 
                 {/* Chain toggle */}
                 {i > 0 && (
-                  <label className="flex items-center gap-1.5 cursor-pointer ml-1">
-                    <div
-                      className={`w-7 h-4 rounded-full transition-colors ${step.usesPreviousOutput ? "bg-[#e84040]/70" : "bg-white/10"}`}
-                      onClick={() => updateStep(step.id, "usesPreviousOutput", !step.usesPreviousOutput)}
+                  <button
+                    type="button"
+                    aria-pressed={step.usesPreviousOutput}
+                    aria-label="Chain previous step output"
+                    onClick={() => updateStep(step.id, "usesPreviousOutput", !step.usesPreviousOutput)}
+                    className="flex items-center gap-1.5 ml-1"
+                  >
+                    <span
+                      className={`inline-flex w-7 h-4 rounded-full transition-colors ${step.usesPreviousOutput ? "bg-[#e84040]/70" : "bg-white/10"}`}
+                      aria-hidden="true"
                     >
-                      <div className={`h-3 w-3 m-0.5 rounded-full bg-white transition-transform ${step.usesPreviousOutput ? "translate-x-3" : "translate-x-0"}`} />
-                    </div>
+                      <span className={`h-3 w-3 m-0.5 rounded-full bg-white transition-transform ${step.usesPreviousOutput ? "translate-x-3" : "translate-x-0"}`} />
+                    </span>
                     <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-white/30">chain</span>
-                  </label>
+                  </button>
                 )}
 
                 <div className="ml-auto flex items-center gap-2">

@@ -42,7 +42,9 @@ function pruneExpired(entry: Entry, now: number, windowMs: number): void {
   const cutoff = now - windowMs;
   // Drop timestamps older than the window (array is append-only / chronological).
   let i = 0;
-  while (i < entry.timestamps.length && entry.timestamps[i]! < cutoff) {
+  while (i < entry.timestamps.length) {
+    const ts = entry.timestamps[i];
+    if (ts === undefined || ts >= cutoff) break;
     i += 1;
   }
   if (i > 0) entry.timestamps.splice(0, i);
