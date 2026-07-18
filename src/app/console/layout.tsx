@@ -29,7 +29,7 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
       {/* Console chrome — thin top bar distinguishing it from the public site */}
       <div className="sticky top-14 z-40 border-b border-[#e84040]/20 bg-black/60 backdrop-blur-xl">
         <div className="mx-auto flex h-10 max-w-7xl items-center gap-4 px-6">
-          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#e84040] shrink-0">
+          <span className="min-w-0 truncate font-mono text-[10px] uppercase tracking-[0.18em] text-[#e84040]">
             Owner Console
           </span>
           <ConsoleTabs />
