@@ -16,25 +16,32 @@ export default function AuthForm() {
     setStatus("loading");
     setErrorMsg("");
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOtp({
-      email: trimmed,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/console`,
-      },
-    });
+    try {
+      const supabase = createClient();
+      // Do not auto-create accounts — only pre-provisioned owners can sign in.
+      const { error } = await supabase.auth.signInWithOtp({
+        email: trimmed,
+        options: {
+          shouldCreateUser: false,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/console`,
+        },
+      });
 
-    if (error) {
+      if (error) {
+        setStatus("error");
+        setErrorMsg(error.message);
+      } else {
+        setStatus("sent");
+      }
+    } catch (err) {
       setStatus("error");
-      setErrorMsg(error.message);
-    } else {
-      setStatus("sent");
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     }
   }
 
   if (status === "sent") {
     return (
-      <div className="panel-strong p-6 text-center">
+      <div className="panel-strong p-6 text-center" role="status" aria-live="polite">
         <span className="eyebrow">Check your inbox</span>
         <p className="mt-3 text-[14px] leading-relaxed text-white/65">
           We sent a magic link to{" "}
@@ -43,10 +50,13 @@ export default function AuthForm() {
         </p>
         <button
           type="button"
-          onClick={() => { setStatus("idle"); setEmail(""); }}
+          onClick={() => {
+            setStatus("idle");
+            setEmail("");
+          }}
           className="mt-5 font-mono text-[11px] uppercase tracking-[0.12em] text-white/35 hover:text-white transition-colors"
         >
-          Use a different email →
+          Use a different email
         </button>
       </div>
     );
@@ -70,7 +80,10 @@ export default function AuthForm() {
       </label>
 
       {status === "error" && (
-        <p className="rounded-md border border-[#e84040]/30 bg-[#e84040]/10 px-4 py-3 text-[13px] text-[#e84040]">
+        <p
+          role="alert"
+          className="rounded-md border border-[#e84040]/30 bg-[#e84040]/10 px-4 py-3 text-[13px] text-[#e84040]"
+        >
           {errorMsg}
         </p>
       )}
@@ -80,7 +93,7 @@ export default function AuthForm() {
         disabled={status === "loading" || !email.trim()}
         className="cs-btn-deploy w-full justify-center py-3 text-[11px] disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {status === "loading" ? "Sending…" : "Send magic link →"}
+        {status === "loading" ? "Sending…" : "Send magic link"}
       </button>
     </form>
   );

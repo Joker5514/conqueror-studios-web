@@ -39,6 +39,7 @@ begin
 end;
 $$;
 
+drop trigger if exists subscriptions_set_updated_at on public.subscriptions;
 create trigger subscriptions_set_updated_at
   before update on public.subscriptions
   for each row execute procedure public.set_updated_at();

@@ -154,31 +154,63 @@ async function callProvider(
     body = JSON.stringify({ model, messages, max_tokens: 4096 });
   }
 
-  const res = await fetch(config.endpoint, { method: "POST", headers, body });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const msg = (err as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`;
+  const controller = new AbortController();
+  const timeoutMs = 60_000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let res: Response;
+  try {
+    res = await fetch(config.endpoint, {
+      method: "POST",
+      headers,
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Request to ${provider} timed out after ${timeoutMs / 1000}s`);
+    }
+    // Network errors are retryable.
     if (attempt < maxRetries) {
       await new Promise((r) => setTimeout(r, 1000 * attempt));
+      return callProvider(provider, model, messages, apiKey, maxRetries, attempt + 1);
+    }
+    throw err instanceof Error ? err : new Error(String(err));
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg =
+      (err as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`;
+    // Only retry transient failures: rate limits and server errors.
+    const retryable = res.status === 429 || res.status >= 500;
+    if (retryable && attempt < maxRetries) {
+      const backoffMs = res.status === 429 ? 2000 * attempt : 1000 * attempt;
+      await new Promise((r) => setTimeout(r, backoffMs));
       return callProvider(provider, model, messages, apiKey, maxRetries, attempt + 1);
     }
     throw new Error(msg);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as {
+    content?: { text?: string }[];
+    choices?: { message?: { content?: string } }[];
+  };
   if (provider === "claude") {
-    const text = (data as any).content?.[0]?.text;
+    const text = data.content?.[0]?.text;
     if (typeof text !== "string") {
       throw new Error("Invalid or empty response structure from Claude API");
     }
     return text;
-  } else {
-    const content = (data as any).choices?.[0]?.message?.content;
-    if (typeof content !== "string") {
-      throw new Error(`Invalid or empty response structure from ${provider} API`);
-    }
-    return content;
   }
+  const content = data.choices?.[0]?.message?.content;
+  if (typeof content !== "string") {
+    throw new Error(`Invalid or empty response structure from ${provider} API`);
+  }
+  return content;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────

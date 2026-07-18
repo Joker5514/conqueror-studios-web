@@ -49,39 +49,43 @@ export async function POST(request: Request) {
   // Add handlers for each event type as billing flows are built out.
   // Keep this switch exhaustive; unhandled events fall through to { received: true }.
 
+  // Phase-1 stubs: log and acknowledge. Provisioning handlers will be wired
+  // before enabling live Stripe webhooks in production. Stripe retries on
+  // non-2xx; once business logic lands, persist `event.id` for idempotency.
   switch (event.type) {
     case "checkout.session.completed": {
-      const session = event.data.object;
+      const session = event.data.object as Stripe.Checkout.Session;
       // TODO: provision access — look up user by session.customer_email,
-      // upsert a `subscriptions` row, and send a welcome email.
-      console.log("[stripe] checkout.session.completed", session.id);
+      // upsert a `subscriptions` row (keyed by event.id for idempotency),
+      // and send a welcome email. Do not return 2xx until that write succeeds.
+      console.log("[stripe] checkout.session.completed", session.id, session.customer_email);
       break;
     }
 
     case "customer.subscription.created":
     case "customer.subscription.updated": {
-      const subscription = event.data.object;
+      const subscription = event.data.object as Stripe.Subscription;
       // TODO: sync subscription status to Supabase `subscriptions` table.
       console.log(`[stripe] ${event.type}`, subscription.id, subscription.status);
       break;
     }
 
     case "customer.subscription.deleted": {
-      const subscription = event.data.object;
+      const subscription = event.data.object as Stripe.Subscription;
       // TODO: revoke access — mark subscription as cancelled in Supabase.
       console.log("[stripe] customer.subscription.deleted", subscription.id);
       break;
     }
 
     case "invoice.payment_succeeded": {
-      const invoice = event.data.object;
+      const invoice = event.data.object as Stripe.Invoice;
       // TODO: record successful payment and reset any dunning flags.
       console.log("[stripe] invoice.payment_succeeded", invoice.id);
       break;
     }
 
     case "invoice.payment_failed": {
-      const invoice = event.data.object;
+      const invoice = event.data.object as Stripe.Invoice;
       // TODO: notify user and start dunning sequence.
       console.log("[stripe] invoice.payment_failed", invoice.id);
       break;
