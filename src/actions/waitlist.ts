@@ -1,7 +1,9 @@
 "use server";
 
+import { headers } from "next/headers";
 import { sendTemplatedEmail } from "@/lib/postmark/send";
 import { tryGetSupabaseServerEnv } from "@/lib/supabase/server-env";
+import { rateLimit } from "@/lib/rateLimit";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -12,6 +14,24 @@ export type WaitlistSignupResult =
 export async function signUpForWaitlist(
   formData: FormData,
 ): Promise<WaitlistSignupResult> {
+  // ── Rate limiting — 3 submissions per IP per minute ──────────────────────
+  // On Vercel the real client IP is the *last* hop in x-forwarded-for
+  // (leftmost values are client-controlled and spoofable).
+  const headerStore = await headers();
+  const xff = headerStore.get("x-forwarded-for");
+  const xffParts = xff?.split(",").map((p) => p.trim()).filter(Boolean) ?? [];
+  const ip =
+    xffParts.at(-1) ??
+    headerStore.get("x-real-ip")?.trim() ??
+    null;
+  if (!ip) {
+    return { ok: false, error: "Unable to verify client. Please try again." };
+  }
+  const limit = rateLimit(`waitlist:${ip}`, { windowMs: 60_000, max: 3 });
+  if (!limit.ok) {
+    return { ok: false, error: "Too many requests. Please wait a minute before trying again." };
+  }
+
   const rawEmail = formData.get("email");
   if (typeof rawEmail !== "string") {
     return { ok: false, error: "Email is required." };

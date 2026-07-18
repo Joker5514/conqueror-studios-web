@@ -32,9 +32,8 @@ afterEach(() => {
   }
 });
 
-// Import lazily after mocking so each test re-evaluates process.env at call time.
-// server-env.ts reads process.env inside function bodies (not at module load time),
-// so a single top-level import is sufficient.
+// Import once. server-env.ts reads process.env inside function bodies
+// (not at module load time). Do not mock this module from sibling test files.
 const { tryGetSupabaseServerEnv, getSupabaseServerEnv } = await import(
   "./server-env"
 );
@@ -114,14 +113,11 @@ test("tryGetSupabaseServerEnv falls back to NEXT_PUBLIC_SUPABASE_URL when no ser
 });
 
 test("tryGetSupabaseServerEnv returns null when SUPABASE_URL is a browser service proxy URL and no fallback is set", () => {
-  // A browser proxy URL contains /proxy/browser/service/ in its path
   process.env.SUPABASE_URL =
     "https://example.com/proxy/browser/service/supabase";
   process.env.SUPABASE_ANON_KEY = "anon-key";
-  // NEXT_PUBLIC_SUPABASE_URL not set, so no fallback → URL resolves to undefined
 
   const result = tryGetSupabaseServerEnv();
-  // Without NEXT_PUBLIC_SUPABASE_URL, the proxy URL is filtered and URL becomes undefined
   expect(result).toBeNull();
 });
 

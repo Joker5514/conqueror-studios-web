@@ -91,7 +91,7 @@ const PRICING: Record<string, Record<string, { input: number; output: number }>>
   },
 };
 
-function calculateCost(provider: string, model: string, inputTokens: number, outputTokens: number): number {
+function _calculateCost(provider: string, model: string, inputTokens: number, outputTokens: number): number {
   const rates = PRICING[provider]?.[model] ?? { input: 0, output: 0 };
   return (inputTokens * rates.input) / 1e6 + (outputTokens * rates.output) / 1e6;
 }
@@ -125,6 +125,94 @@ const DEFAULT_STEPS: WorkflowStep[] = [
 
 const STORAGE_KEY = "ai_bridge_workflows";
 
+// ── Standalone API call helper (defined outside component to avoid hoisting) ─
+
+async function callProvider(
+  provider: ProviderId,
+  model: string,
+  messages: { role: string; content: string }[],
+  apiKey: string,
+  maxRetries: number,
+  attempt = 1,
+): Promise<string> {
+  const config = PROVIDER_CONFIG[provider];
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  let body: string;
+
+  if (provider === "claude") {
+    headers["x-api-key"] = apiKey;
+    headers["anthropic-version"] = "2023-06-01";
+    headers["anthropic-dangerous-direct-browser-access"] = "true";
+    body = JSON.stringify({
+      model,
+      max_tokens: 4096,
+      messages: messages.filter((m) => m.role !== "system"),
+      system: messages.find((m) => m.role === "system")?.content,
+    });
+  } else {
+    headers.Authorization = `Bearer ${apiKey}`;
+    body = JSON.stringify({ model, messages, max_tokens: 4096 });
+  }
+
+  const controller = new AbortController();
+  const timeoutMs = 60_000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let res: Response;
+  try {
+    res = await fetch(config.endpoint, {
+      method: "POST",
+      headers,
+      body,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`Request to ${provider} timed out after ${timeoutMs / 1000}s`);
+    }
+    // Network errors are retryable.
+    if (attempt < maxRetries) {
+      await new Promise((r) => setTimeout(r, 1000 * attempt));
+      return callProvider(provider, model, messages, apiKey, maxRetries, attempt + 1);
+    }
+    throw err instanceof Error ? err : new Error(String(err));
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg =
+      (err as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`;
+    // Only retry transient failures: rate limits and server errors.
+    const retryable = res.status === 429 || res.status >= 500;
+    if (retryable && attempt < maxRetries) {
+      const backoffMs = res.status === 429 ? 2000 * attempt : 1000 * attempt;
+      await new Promise((r) => setTimeout(r, backoffMs));
+      return callProvider(provider, model, messages, apiKey, maxRetries, attempt + 1);
+    }
+    throw new Error(msg);
+  }
+
+  const data = (await res.json()) as {
+    content?: { text?: string }[];
+    choices?: { message?: { content?: string } }[];
+  };
+  if (provider === "claude") {
+    const text = data.content?.[0]?.text;
+    if (typeof text !== "string") {
+      throw new Error("Invalid or empty response structure from Claude API");
+    }
+    return text;
+  }
+  const content = data.choices?.[0]?.message?.content;
+  if (typeof content !== "string") {
+    throw new Error(`Invalid or empty response structure from ${provider} API`);
+  }
+  return content;
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function MultiAIPlatform() {
@@ -155,47 +243,6 @@ export default function MultiAIPlatform() {
     }
   });
 
-  // ── API call (mirrors realAPICall from MultiAIPlatform.jsx) ──────────────
-
-  const apiCall = useCallback(
-    async (provider: ProviderId, model: string, messages: { role: string; content: string }[], apiKey: string, attempt = 1): Promise<string> => {
-      const config = PROVIDER_CONFIG[provider];
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      let body: string;
-
-      if (provider === "claude") {
-        headers["x-api-key"] = apiKey;
-        headers["anthropic-version"] = "2023-06-01";
-        body = JSON.stringify({
-          model,
-          max_tokens: 4096,
-          messages: messages.filter((m) => m.role !== "system"),
-          system: messages.find((m) => m.role === "system")?.content,
-        });
-      } else {
-        headers["Authorization"] = `Bearer ${apiKey}`;
-        body = JSON.stringify({ model, messages, max_tokens: 4096 });
-      }
-
-      const res = await fetch(config.endpoint, { method: "POST", headers, body });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const msg = (err as { error?: { message?: string } }).error?.message ?? `HTTP ${res.status}`;
-        if (attempt < retryAttempts) {
-          await new Promise((r) => setTimeout(r, 1000 * attempt));
-          return apiCall(provider, model, messages, apiKey, attempt + 1);
-        }
-        throw new Error(msg);
-      }
-
-      const data = await res.json();
-      return provider === "claude"
-        ? (data as { content: { text: string }[] }).content[0].text
-        : (data as { choices: { message: { content: string } }[] }).choices[0].message.content;
-    },
-    [retryAttempts],
-  );
-
   // ── Execute workflow (mirrors executeWorkflow from MultiAIPlatform.jsx) ───
 
   const executeWorkflow = useCallback(async () => {
@@ -220,7 +267,7 @@ export default function MultiAIPlatform() {
             step.usesPreviousOutput && prev
               ? `${step.instruction}\n\nPrevious output:\n${prev.content}`
               : `${step.instruction}\n\nUser prompt: ${prompt}`;
-          const content = await apiCall(step.provider, step.model, [{ role: "user", content: content_msg }], key);
+          const content = await callProvider(step.provider, step.model, [{ role: "user", content: content_msg }], key, retryAttempts);
           const result: StepResult = { stepId: step.id, provider: step.provider, model: step.model, content, timestamp: new Date().toISOString() };
           stepResults.push(result);
           setResults([...stepResults]);
@@ -230,7 +277,7 @@ export default function MultiAIPlatform() {
           enabled.map(async (step) => {
             const key = apiKeys[step.provider];
             if (!key) throw new Error(`Missing API key for ${PROVIDER_CONFIG[step.provider].name}`);
-            const content = await apiCall(step.provider, step.model, [{ role: "user", content: `${step.instruction}\n\nUser prompt: ${prompt}` }], key);
+            const content = await callProvider(step.provider, step.model, [{ role: "user", content: `${step.instruction}\n\nUser prompt: ${prompt}` }], key, retryAttempts);
             return { stepId: step.id, provider: step.provider, model: step.model, content, timestamp: new Date().toISOString() } as StepResult;
           }),
         );
@@ -242,7 +289,7 @@ export default function MultiAIPlatform() {
       setIsExecuting(false);
       setCurrentStep(0);
     }
-  }, [prompt, workflow, apiKeys, executionMode, apiCall]);
+  }, [prompt, workflow, apiKeys, executionMode, retryAttempts]);
 
   // ── Workflow persistence ─────────────────────────────────────────────────
 
@@ -439,15 +486,21 @@ export default function MultiAIPlatform() {
 
                 {/* Chain toggle */}
                 {i > 0 && (
-                  <label className="flex items-center gap-1.5 cursor-pointer ml-1">
-                    <div
-                      className={`w-7 h-4 rounded-full transition-colors ${step.usesPreviousOutput ? "bg-[#e84040]/70" : "bg-white/10"}`}
-                      onClick={() => updateStep(step.id, "usesPreviousOutput", !step.usesPreviousOutput)}
+                  <button
+                    type="button"
+                    aria-pressed={step.usesPreviousOutput}
+                    aria-label="Chain previous step output"
+                    onClick={() => updateStep(step.id, "usesPreviousOutput", !step.usesPreviousOutput)}
+                    className="flex items-center gap-1.5 ml-1"
+                  >
+                    <span
+                      className={`inline-flex w-7 h-4 rounded-full transition-colors ${step.usesPreviousOutput ? "bg-[#e84040]/70" : "bg-white/10"}`}
+                      aria-hidden="true"
                     >
-                      <div className={`h-3 w-3 m-0.5 rounded-full bg-white transition-transform ${step.usesPreviousOutput ? "translate-x-3" : "translate-x-0"}`} />
-                    </div>
+                      <span className={`h-3 w-3 m-0.5 rounded-full bg-white transition-transform ${step.usesPreviousOutput ? "translate-x-3" : "translate-x-0"}`} />
+                    </span>
                     <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-white/30">chain</span>
-                  </label>
+                  </button>
                 )}
 
                 <div className="ml-auto flex items-center gap-2">

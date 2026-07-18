@@ -1,22 +1,18 @@
-import { beforeEach, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, expect, mock, test } from "bun:test";
 
 // ─── Mock state ─────────────────────────────────────────────────────────────
 
-// Mutable variables captured by mock closures so individual tests can control
-// what the mocked modules return.
-
-let mockServerEnv = null;
 let getUserCalls = [];
 let createServerClientCalls = [];
 let setCookieCalls = [];
+let nextResponseNextCalls = [];
 
-// ─── Module mocks ────────────────────────────────────────────────────────────
+// Env snapshot so we can drive tryGetSupabaseServerEnv via real process.env
+// (avoids mock.module("./server-env"), which leaks into sibling test files).
+let savedEnv;
 
-mock.module("./server-env", () => ({
-  tryGetSupabaseServerEnv: () => mockServerEnv,
-}));
+// ─── Module mocks (external packages only) ───────────────────────────────────
 
-// Track NextResponse.next calls and provide a minimal cookie-aware response.
 const makeNextResponse = (request) => {
   const cookies = new Map();
   return {
@@ -33,8 +29,6 @@ const makeNextResponse = (request) => {
   };
 };
 
-let nextResponseNextCalls = [];
-
 mock.module("next/server", () => ({
   NextResponse: {
     next: (init) => {
@@ -49,7 +43,6 @@ mock.module("@supabase/ssr", () => ({
   createServerClient: (url, anonKey, options) => {
     createServerClientCalls.push({ url, anonKey, options });
 
-    // Expose the cookies.setAll hook so tests can exercise it
     const setAll = options?.cookies?.setAll;
 
     return {
@@ -71,33 +64,68 @@ const { updateSession } = await import("./proxy");
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function makeRequest(pathname = "/") {
-  // Minimal NextRequest-like object used by updateSession
   const cookieStore = new Map();
   return {
     url: `http://localhost${pathname}`,
     cookies: {
-      getAll: () => [...cookieStore.entries()].map(([name, value]) => ({ name, value })),
+      getAll: () =>
+        [...cookieStore.entries()].map(([name, value]) => ({ name, value })),
     },
   };
 }
 
+function clearSupabaseEnv() {
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_ANON_KEY;
+  delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+  delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  delete process.env.GIC_SERVER_SUPABASE_URL;
+  delete process.env.GIC_BROWSER_LOCAL_SERVICES_JSON;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+}
+
+function configureSupabaseEnv(
+  url = "https://example.supabase.co",
+  anonKey = "my-anon-key",
+) {
+  process.env.SUPABASE_URL = url;
+  process.env.SUPABASE_ANON_KEY = anonKey;
+}
+
 beforeEach(() => {
-  mockServerEnv = null;
+  savedEnv = {
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    GIC_SERVER_SUPABASE_URL: process.env.GIC_SERVER_SUPABASE_URL,
+    GIC_BROWSER_LOCAL_SERVICES_JSON: process.env.GIC_BROWSER_LOCAL_SERVICES_JSON,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  };
+  clearSupabaseEnv();
   getUserCalls = [];
   createServerClientCalls = [];
   setCookieCalls = [];
   nextResponseNextCalls = [];
 });
 
+afterEach(() => {
+  for (const [key, value] of Object.entries(savedEnv)) {
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  }
+});
+
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 test("returns NextResponse.next when Supabase is not configured (serverEnv is null)", async () => {
-  mockServerEnv = null;
   const request = makeRequest();
 
   const response = await updateSession(request);
 
-  // Should return a pass-through response without calling createServerClient
   expect(response).not.toBeNull();
   expect(nextResponseNextCalls).toHaveLength(1);
   expect(nextResponseNextCalls[0]).toEqual({ request });
@@ -106,10 +134,7 @@ test("returns NextResponse.next when Supabase is not configured (serverEnv is nu
 });
 
 test("calls createServerClient with the URL and anonKey from serverEnv when configured", async () => {
-  mockServerEnv = {
-    supabaseUrl: "https://example.supabase.co",
-    supabaseAnonKey: "my-anon-key",
-  };
+  configureSupabaseEnv("https://example.supabase.co", "my-anon-key");
   const request = makeRequest();
 
   await updateSession(request);
@@ -120,10 +145,7 @@ test("calls createServerClient with the URL and anonKey from serverEnv when conf
 });
 
 test("calls supabase.auth.getUser() to refresh the session when configured", async () => {
-  mockServerEnv = {
-    supabaseUrl: "https://example.supabase.co",
-    supabaseAnonKey: "my-anon-key",
-  };
+  configureSupabaseEnv();
   const request = makeRequest();
 
   await updateSession(request);
@@ -132,10 +154,7 @@ test("calls supabase.auth.getUser() to refresh the session when configured", asy
 });
 
 test("returns a response (not null) when Supabase is configured", async () => {
-  mockServerEnv = {
-    supabaseUrl: "https://example.supabase.co",
-    supabaseAnonKey: "my-anon-key",
-  };
+  configureSupabaseEnv();
   const request = makeRequest();
 
   const response = await updateSession(request);
@@ -144,12 +163,8 @@ test("returns a response (not null) when Supabase is configured", async () => {
 });
 
 test("passes request cookies to createServerClient via getAll", async () => {
-  mockServerEnv = {
-    supabaseUrl: "https://example.supabase.co",
-    supabaseAnonKey: "my-anon-key",
-  };
+  configureSupabaseEnv();
 
-  // Create a request that has a cookie
   const cookieStore = new Map([["sb-token", "abc123"]]);
   const request = {
     url: "http://localhost/",
@@ -161,7 +176,6 @@ test("passes request cookies to createServerClient via getAll", async () => {
 
   await updateSession(request);
 
-  // The createServerClient options.cookies.getAll must return the request cookies
   expect(createServerClientCalls).toHaveLength(1);
   const { options } = createServerClientCalls[0];
   const cookies = options.cookies.getAll();
@@ -169,10 +183,7 @@ test("passes request cookies to createServerClient via getAll", async () => {
 });
 
 test("provides both getAll and setAll cookie handlers to createServerClient", async () => {
-  mockServerEnv = {
-    supabaseUrl: "https://example.supabase.co",
-    supabaseAnonKey: "my-anon-key",
-  };
+  configureSupabaseEnv();
   const request = makeRequest();
 
   await updateSession(request);
@@ -186,8 +197,6 @@ test("provides both getAll and setAll cookie handlers to createServerClient", as
 // Regression: when serverEnv is null, no session refresh should happen regardless
 // of the request path, confirming the early-return guard works for all routes.
 test("skips session refresh for any request path when Supabase is not configured", async () => {
-  mockServerEnv = null;
-
   const paths = ["/", "/dashboard", "/api/data", "/auth/callback"];
 
   for (const path of paths) {
