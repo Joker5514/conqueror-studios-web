@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 
 const TABS = [
   { href: "/console", label: "Run" },
+  { href: "/console/agents", label: "Agents" },
   { href: "/console/waitlist", label: "Waitlist" },
+  { href: "/console/settings", label: "Settings" },
 ] as const;
 
 export default function ConsoleTabs() {

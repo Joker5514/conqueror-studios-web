@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useNexusRun, useNexusSchema } from "@/hooks/api/useNexus";
 import type { NexusRunResult } from "@/hooks/api/useNexus";
+import { useMountEffect } from "@/hooks/useMountEffect";
 
 /**
  * src/app/console/page.tsx
@@ -40,11 +41,36 @@ interface HistoryEntry {
   ranAt: string;
 }
 
+const HISTORY_KEY = "console:nexus:history";
+
+function readHistory(): HistoryEntry[] {
+  try {
+    const raw = sessionStorage.getItem(HISTORY_KEY);
+    return raw ? (JSON.parse(raw) as HistoryEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeHistory(entries: HistoryEntry[]): void {
+  try {
+    sessionStorage.setItem(HISTORY_KEY, JSON.stringify(entries));
+  } catch {
+    // sessionStorage unavailable — silently skip
+  }
+}
+
 export default function ConsolePage() {
   const [query, setQuery] = useState("");
   const [showTrace, setShowTrace] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+
+  // Hydrate history from sessionStorage on mount (sync with external storage).
+  useMountEffect(() => {
+    const stored = readHistory();
+    if (stored.length > 0) setHistory(stored);
+  });
 
   const { mutate: run, data: runData, isPending, error: runError, reset } = useNexusRun();
   const { data: schema } = useNexusSchema();
@@ -59,7 +85,9 @@ export default function ConsolePage() {
         onSuccess(data) {
           setHistory((prev) => {
             const entry: HistoryEntry = { query, result: data, ranAt: new Date().toISOString() };
-            return [entry, ...prev].slice(0, MAX_HISTORY);
+            const next = [entry, ...prev].slice(0, MAX_HISTORY);
+            writeHistory(next);
+            return next;
           });
         },
       },

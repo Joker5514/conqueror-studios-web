@@ -335,8 +335,8 @@ export default function AgentsPage() {
       <ProductCTA
         eyebrow="Agent Studio"
         title="Build the agents you've been describing."
-        description="Early access is open to teams with a concrete use case. Tell us what you're building and we'll get you running."
-        primaryCta={{ href: "/waitlist", label: "Apply for early access" }}
+        description="The studio is live inside the owner console. Define an agent, connect it to Nexus, and run it now."
+        primaryCta={{ href: "/console/agents", label: "Open Agent Studio →" }}
         secondaryCta={{
           href: "/orchestrai",
           label: "See the orchestration engine",

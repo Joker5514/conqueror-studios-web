@@ -1,6 +1,6 @@
 import { getPostmarkClient } from "./client";
 
-export type StarterTemplateAlias = "welcome-email" | "broadcast-update";
+export type StarterTemplateAlias = "welcome-email" | "broadcast-update" | "payment-failed";
 
 const BROADCAST_TEMPLATE_ALIASES: ReadonlySet<StarterTemplateAlias> = new Set([
   "broadcast-update",
@@ -30,6 +30,14 @@ export type TemplateModels = {
     cta_url: string;
     cta_label: string;
     unsubscribe_url: string;
+    support_email: string;
+  };
+  "payment-failed": {
+    product_name: string;
+    customer_email: string;
+    invoice_id: string;
+    amount_due: string;
+    update_billing_url: string;
     support_email: string;
   };
 };
