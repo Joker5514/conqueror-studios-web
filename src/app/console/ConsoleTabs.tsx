@@ -8,6 +8,7 @@ const TABS = [
   { href: "/console/agents", label: "Agents" },
   { href: "/console/waitlist", label: "Waitlist" },
   { href: "/console/settings", label: "Settings" },
+  { href: "/console/waitlist", label: "Waitlist" },
 ] as const;
 
 export default function ConsoleTabs() {

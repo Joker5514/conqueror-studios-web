@@ -6,6 +6,8 @@ import Stripe from "stripe";
  *
  * Handles inbound Stripe webhook events with signature verification.
  * Upserts subscription state to the `subscriptions` table on key lifecycle events.
+ * Business logic stubs are wired here — fill in each case as billing
+ * requirements solidify.
  *
  * Required env vars:
  *   STRIPE_SECRET_KEY        — Stripe secret key
@@ -101,6 +103,20 @@ export async function POST(request: Request) {
           console.error("[stripe] failed to retrieve/upsert subscription", err);
         }
       }
+  //
+  // Add handlers for each event type as billing flows are built out.
+  // Keep this switch exhaustive; unhandled events fall through to { received: true }.
+
+  // Phase-1 stubs: log and acknowledge. Provisioning handlers will be wired
+  // before enabling live Stripe webhooks in production. Stripe retries on
+  // non-2xx; once business logic lands, persist `event.id` for idempotency.
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      // TODO: provision access — look up user by session.customer_email,
+      // upsert a `subscriptions` row (keyed by event.id for idempotency),
+      // and send a welcome email. Do not return 2xx until that write succeeds.
+      console.log("[stripe] checkout.session.completed", session.id, session.customer_email);
       break;
     }
 
@@ -111,6 +127,8 @@ export async function POST(request: Request) {
       await upsertSubscription(subscription).catch((err) =>
         console.error("[stripe] upsert failed", err),
       );
+      // TODO: sync subscription status to Supabase `subscriptions` table.
+      console.log(`[stripe] ${event.type}`, subscription.id, subscription.status);
       break;
     }
 
@@ -121,6 +139,8 @@ export async function POST(request: Request) {
       await upsertSubscription(subscription).catch((err) =>
         console.error("[stripe] upsert on delete failed", err),
       );
+      // TODO: revoke access — mark subscription as cancelled in Supabase.
+      console.log("[stripe] customer.subscription.deleted", subscription.id);
       break;
     }
 
@@ -128,6 +148,8 @@ export async function POST(request: Request) {
       const invoice = event.data.object as Stripe.Invoice;
       console.log("[stripe] invoice.payment_succeeded", invoice.id);
       // Subscription status already updated via subscription.updated event.
+      // TODO: record successful payment and reset any dunning flags.
+      console.log("[stripe] invoice.payment_succeeded", invoice.id);
       break;
     }
 
@@ -163,10 +185,13 @@ export async function POST(request: Request) {
           },
         }).catch((err) => console.error("[stripe] dunning email failed", err));
       }
+      // TODO: notify user and start dunning sequence.
+      console.log("[stripe] invoice.payment_failed", invoice.id);
       break;
     }
 
     default:
+      // Unknown event — safe to ignore.
       break;
   }
 

@@ -24,6 +24,15 @@
  * Usage:
  *   const result = rateLimit(`waitlist:${ip}`, { windowMs: 60_000, max: 3 });
  *   if (!result.ok) return { ok: false, error: "Too many requests." };
+ * Lightweight in-process sliding-window rate limiter.
+ *
+ * Works in Node.js serverless functions (one process per cold start).
+ * For multi-region horizontal scale, swap the Map for an Upstash Redis
+ * store — the public API is identical.
+ *
+ * Usage:
+ *   const result = rateLimit(ip, { windowMs: 60_000, max: 3 });
+ *   if (!result.ok) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
  */
 
 interface Entry {
@@ -32,6 +41,7 @@ interface Entry {
 }
 
 // Module-level store — survives across requests within the same process instance.
+// Module-level store survives across requests within the same process.
 const store = new Map<string, Entry>();
 
 /** Hard cap so a pathological flood of unique keys cannot OOM the process. */
