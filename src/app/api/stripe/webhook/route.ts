@@ -44,11 +44,11 @@ async function upsertSubscription(sub: Stripe.Subscription): Promise<void> {
       email,
       status: sub.status,
       plan,
-      current_period_start: item?.current_period_start
-        ? new Date(item.current_period_start * 1000).toISOString()
+      current_period_start: sub.current_period_start
+        ? new Date(sub.current_period_start * 1000).toISOString()
         : null,
-      current_period_end: item?.current_period_end
-        ? new Date(item.current_period_end * 1000).toISOString()
+      current_period_end: sub.current_period_end
+        ? new Date(sub.current_period_end * 1000).toISOString()
         : null,
       cancel_at_period_end: sub.cancel_at_period_end,
     },
