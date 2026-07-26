@@ -1,41 +1,44 @@
 /**
  * AI Gateway identifier constants.
  *
- * All names below that are not already used elsewhere in this repo are
- * marked PROPOSED — confirm before treating them as permanent contracts.
+ * Confirmed Phase-1 matrix (conqueror-studios-web / A2):
+ * - Auth header: X-Gateway-Secret
+ * - Auth env: GATEWAY_SECRET (server-only)
+ * - Default mode: direct-to-providers (OpenAI, Anthropic, xAI)
+ * Optional mode/upstream names remain available for future routing.
  */
 
-/** PROPOSED: inbound auth header name (case-insensitive on read). */
+/** Confirmed: inbound auth header name (case-insensitive on read). */
 export const GATEWAY_AUTH_HEADER_NAME = "X-Gateway-Secret";
 
 /**
- * PROPOSED: server-only env var that holds the shared secret.
+ * Confirmed: server-only env var that holds the shared secret.
  * Must match the value clients send in GATEWAY_AUTH_HEADER_NAME.
  * Never use NEXT_PUBLIC_* for this.
  */
 export const GATEWAY_SECRET_ENV = "GATEWAY_SECRET";
 
 /**
- * PROPOSED: routing mode.
- * - "direct" (default): call provider HTTP APIs from this Next.js route
+ * Optional routing mode.
+ * - "direct" (default, confirmed Phase-1): call provider HTTP APIs from this route
  * - "upstream": forward the request body to AI_GATEWAY_UPSTREAM_URL
  */
 export const AI_GATEWAY_MODE_ENV = "AI_GATEWAY_MODE";
 
 /**
- * PROPOSED: absolute URL of an upstream gateway (used when mode is "upstream").
+ * Optional: absolute URL of an upstream gateway (used when mode is "upstream").
  * Example: https://nexus-production.up.railway.app/api/gateway
  * Server-only. Distinct from NEXUS_URL (/run orchestration) and BRIDGE_URL (tools).
  */
 export const AI_GATEWAY_UPSTREAM_URL_ENV = "AI_GATEWAY_UPSTREAM_URL";
 
-/** PROPOSED: OpenAI secret (server-only). */
+/** Confirmed: OpenAI secret (server-only). */
 export const OPENAI_API_KEY_ENV = "OPENAI_API_KEY";
 
-/** PROPOSED: Anthropic secret (server-only). */
+/** Confirmed: Anthropic secret (server-only). */
 export const ANTHROPIC_API_KEY_ENV = "ANTHROPIC_API_KEY";
 
-/** PROPOSED: xAI / Grok secret (server-only). */
+/** Confirmed: xAI / Grok secret (server-only). */
 export const XAI_API_KEY_ENV = "XAI_API_KEY";
 
 /** Canonical provider ids accepted by POST /api/gateway. */

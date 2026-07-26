@@ -20,8 +20,8 @@ Implementation: `src/app/api/gateway/route.ts`
 
 | Item | Value | Notes |
 |------|--------|--------|
-| Header name | **`X-Gateway-Secret`** | **PROPOSED** — confirm before locking the contract |
-| Env var (server-only) | **`GATEWAY_SECRET`** | **PROPOSED** — must match header value |
+| Header name | **`X-Gateway-Secret`** | **Confirmed** Phase-1 |
+| Env var (server-only) | **`GATEWAY_SECRET`** | **Confirmed** — must match header value |
 | Comparison | Constant-time (SHA-256 digests) | Missing/wrong → `401` |
 | Unset secret | `503` `gateway_misconfigured` | Fail closed |
 
@@ -60,7 +60,7 @@ Or single-turn:
 
 ### Providers (canonical)
 
-| `provider` | Aliases | Server env (PROPOSED) |
+| `provider` | Aliases | Server env (confirmed) |
 |------------|---------|------------------------|
 | `openai` | — | `OPENAI_API_KEY` |
 | `anthropic` | `claude` | `ANTHROPIC_API_KEY` |
@@ -103,7 +103,7 @@ Common codes: `unauthorized`, `gateway_misconfigured`, `rate_limited`, `invalid_
 | *(unset)* / `direct` | **Default.** Call OpenAI / Anthropic / xAI HTTP APIs from this route using server env keys. |
 | `upstream` | Forward JSON body to `AI_GATEWAY_UPSTREAM_URL` (server-only absolute URL). Forwards `X-Gateway-Secret` if present. |
 
-**PROPOSED** env names: `AI_GATEWAY_MODE`, `AI_GATEWAY_UPSTREAM_URL`.
+Optional env names for non-default routing: `AI_GATEWAY_MODE`, `AI_GATEWAY_UPSTREAM_URL`.
 
 Related existing env (not used by `/api/gateway` unless you point upstream at them yourself):
 
@@ -209,14 +209,20 @@ For **other repos** calling this deployment, store `GATEWAY_SECRET` and the prod
 
 ---
 
-## Identifier summary (PROPOSED)
+## Identifier summary (Phase-1 confirmed)
 
-| Role | Identifier |
-|------|------------|
-| Auth header | `X-Gateway-Secret` |
-| Auth env | `GATEWAY_SECRET` |
-| Mode env | `AI_GATEWAY_MODE` |
-| Upstream URL env | `AI_GATEWAY_UPSTREAM_URL` |
-| Provider keys | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `XAI_API_KEY` |
+| Role | Identifier | Status |
+|------|------------|--------|
+| Auth header | `X-Gateway-Secret` | Confirmed |
+| Auth env | `GATEWAY_SECRET` | Confirmed |
+| Default mode | direct-to-providers | Confirmed |
+| Mode env | `AI_GATEWAY_MODE` | Optional (`direct` \| `upstream`) |
+| Upstream URL env | `AI_GATEWAY_UPSTREAM_URL` | Optional |
+| Provider keys | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `XAI_API_KEY` | Confirmed |
 
-If any of these conflict with an org-wide standard, rename before merge and update this doc + `src/lib/ai-gateway/constants.ts` together.
+### Client secret audit (this repo)
+
+- No provider keys or `GATEWAY_SECRET` are exposed via `NEXT_PUBLIC_*`.
+- Gateway route and `src/lib/ai-gateway/*` use server-only `process.env` only.
+- `MultiAIPlatform` (AI Bridge demo) is **BYOK**: keys are entered in the browser by the user and sent directly to providers — not loaded from env. Production callers should use `POST /api/gateway` from **server-side** code instead.
+- Client-secret remediations for **uncle-vito** / **stake-affiliate-vito** are out of this repository; point those apps at this gateway with server-only `GATEWAY_SECRET`.
