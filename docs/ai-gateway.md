@@ -78,10 +78,12 @@ Or single-turn:
     "input_tokens": 12,
     "output_tokens": 8,
     "total_tokens": 20
-  },
-  "raw": {}
+  }
 }
 ```
+
+Provider raw payloads are **not** returned (avoids leaking provider metadata).
+
 
 ### Error response
 
@@ -166,6 +168,9 @@ bun run dev
 ```
 
 ```bash
+# Export the same secret you put in .env.local (Next does not inject it into your shell)
+export GATEWAY_SECRET=dev-secret
+
 curl -sS -X POST "http://localhost:3000/api/gateway" \
   -H "Content-Type: application/json" \
   -H "X-Gateway-Secret: $GATEWAY_SECRET" \

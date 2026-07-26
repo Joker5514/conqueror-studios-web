@@ -7,7 +7,7 @@ export interface GatewayMessage {
 
 /**
  * Minimal POST body for /api/gateway.
- * Extra fields are ignored (not forwarded to providers unless documented).
+ * Only documented fields are used; upstream mode forwards an allowlisted subset.
  */
 export interface GatewayRequestBody {
   provider: string;
@@ -32,8 +32,6 @@ export interface GatewaySuccessResponse {
   model: string;
   output_text: string;
   usage?: GatewayUsage;
-  /** Provider payload; omit secrets. Present for debugging on success only. */
-  raw?: unknown;
 }
 
 export interface GatewayErrorResponse {

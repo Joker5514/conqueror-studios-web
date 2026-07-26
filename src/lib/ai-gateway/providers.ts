@@ -11,6 +11,9 @@ import type {
   GatewayUsage,
 } from "./types";
 
+/** Application-level deadline for outbound provider HTTP calls. */
+const PROVIDER_FETCH_TIMEOUT_MS = 60_000;
+
 export class ProviderHttpError extends Error {
   readonly status: number;
   readonly code: string;
@@ -26,11 +29,8 @@ export class ProviderHttpError extends Error {
 function requireKey(envName: string): string {
   const key = process.env[envName]?.trim();
   if (!key) {
-    throw new ProviderHttpError(
-      `Provider not configured (${envName} missing)`,
-      503,
-      "provider_misconfigured",
-    );
+    // Do not leak the exact env var name to clients.
+    throw new ProviderHttpError("Provider not configured", 503, "provider_misconfigured");
   }
   return key;
 }
@@ -40,6 +40,12 @@ function asRecord(value: unknown): Record<string, unknown> | null {
     return value as Record<string, unknown>;
   }
   return null;
+}
+
+function isAbortOrTimeout(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const name = "name" in err && typeof err.name === "string" ? err.name : "";
+  return name === "AbortError" || name === "TimeoutError" || name === "DOMException";
 }
 
 function openaiCompatibleUsage(raw: Record<string, unknown> | null): GatewayUsage | undefined {
@@ -54,6 +60,12 @@ function openaiCompatibleUsage(raw: Record<string, unknown> | null): GatewayUsag
     output_tokens: completion,
     total_tokens: total ?? (prompt !== undefined && completion !== undefined ? prompt + completion : undefined),
   };
+}
+
+/** OpenAI reasoning / newer models reject legacy max_tokens. */
+function usesMaxCompletionTokens(model: string): boolean {
+  const m = model.trim().toLowerCase();
+  return /^(o[1-9]|gpt-5)/.test(m);
 }
 
 async function callOpenAiCompatible(options: {
@@ -72,7 +84,10 @@ async function callOpenAiCompatible(options: {
     messages,
   };
   if (typeof temperature === "number") body.temperature = temperature;
-  if (typeof maxTokens === "number") body.max_tokens = maxTokens;
+  if (typeof maxTokens === "number") {
+    if (usesMaxCompletionTokens(model)) body.max_completion_tokens = maxTokens;
+    else body.max_tokens = maxTokens;
+  }
 
   let res: Response;
   try {
@@ -83,8 +98,12 @@ async function callOpenAiCompatible(options: {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(PROVIDER_FETCH_TIMEOUT_MS),
     });
-  } catch {
+  } catch (err) {
+    if (isAbortOrTimeout(err)) {
+      throw new ProviderHttpError("Provider request timed out", 504, "provider_timeout");
+    }
     throw new ProviderHttpError("Provider unreachable", 502, "provider_unreachable");
   }
 
@@ -102,9 +121,30 @@ async function callOpenAiCompatible(options: {
 
   const choices = Array.isArray(record?.choices) ? record.choices : [];
   const first = asRecord(choices[0]);
-  const message = asRecord(first?.message);
+  if (!first) {
+    throw new ProviderHttpError(
+      `Provider returned an invalid response (${provider})`,
+      502,
+      "provider_invalid_response",
+    );
+  }
+
+  const message = asRecord(first.message);
   const content = message?.content;
-  const output_text = typeof content === "string" ? content : "";
+  const refusal = message?.refusal;
+  let output_text = "";
+  if (typeof content === "string") {
+    output_text = content;
+  } else if (typeof refusal === "string" && refusal.length > 0) {
+    // Safety refusals: surface text so callers do not treat blank as success.
+    output_text = refusal;
+  } else if (content !== undefined && content !== null && typeof content !== "string") {
+    throw new ProviderHttpError(
+      `Provider returned an invalid response (${provider})`,
+      502,
+      "provider_invalid_response",
+    );
+  }
 
   return {
     id: typeof record?.id === "string" ? record.id : crypto.randomUUID(),
@@ -112,7 +152,6 @@ async function callOpenAiCompatible(options: {
     model,
     output_text,
     usage: openaiCompatibleUsage(record),
-    raw,
   };
 }
 
@@ -155,8 +194,12 @@ async function callAnthropic(options: {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(PROVIDER_FETCH_TIMEOUT_MS),
     });
-  } catch {
+  } catch (err) {
+    if (isAbortOrTimeout(err)) {
+      throw new ProviderHttpError("Provider request timed out", 504, "provider_timeout");
+    }
     throw new ProviderHttpError("Provider unreachable", 502, "provider_unreachable");
   }
 
@@ -171,7 +214,15 @@ async function callAnthropic(options: {
     );
   }
 
-  const contentBlocks = Array.isArray(record?.content) ? record.content : [];
+  const contentBlocks = Array.isArray(record?.content) ? record.content : null;
+  if (!contentBlocks) {
+    throw new ProviderHttpError(
+      "Provider returned an invalid response (anthropic)",
+      502,
+      "provider_invalid_response",
+    );
+  }
+
   const texts: string[] = [];
   for (const block of contentBlocks) {
     const b = asRecord(block);
@@ -198,7 +249,6 @@ async function callAnthropic(options: {
     model: typeof record?.model === "string" ? record.model : model,
     output_text: texts.join(""),
     usage,
-    raw,
   };
 }
 

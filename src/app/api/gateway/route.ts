@@ -24,11 +24,16 @@ import { rateLimit } from "@/lib/rateLimit";
  * Auth: shared secret header (see docs/ai-gateway.md).
  *
  * Body: { provider, model?, messages? | input?, temperature?, max_tokens? }
- * Response: { id, provider, model, output_text, usage?, raw? }
+ * Response: { id, provider, model, output_text, usage? }
  */
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+/** Cap total prompt content to limit memory / token spend abuse. */
+const MAX_MESSAGE_CHARS = 100_000;
+
+const UPSTREAM_FETCH_TIMEOUT_MS = 60_000;
 
 function jsonError(
   status: number,
@@ -68,9 +73,11 @@ function normalizeMessages(body: GatewayRequestBody): GatewayMessage[] | null {
   return null;
 }
 
-function resolveProvider(raw: string | undefined): SupportedProvider | null {
+function resolveProvider(raw: unknown): SupportedProvider | null {
   if (!raw || typeof raw !== "string") return null;
   const key = raw.trim().toLowerCase();
+  // Own-property check: avoid Object.prototype keys like "toString".
+  if (!Object.hasOwn(PROVIDER_ALIASES, key)) return null;
   return PROVIDER_ALIASES[key] ?? null;
 }
 
@@ -79,8 +86,29 @@ function gatewayMode(): "direct" | "upstream" {
   return mode === "upstream" ? "upstream" : "direct";
 }
 
-async function forwardUpstream(
+function isLocalHostname(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+/** Allowlisted payload for upstream mode — never forward arbitrary client fields. */
+function buildUpstreamPayload(
+  provider: SupportedProvider,
   body: GatewayRequestBody,
+  messages: GatewayMessage[],
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {
+    provider,
+    messages,
+  };
+  if (typeof body.model === "string") payload.model = body.model;
+  if (typeof body.input === "string") payload.input = body.input;
+  if (typeof body.temperature === "number") payload.temperature = body.temperature;
+  if (typeof body.max_tokens === "number") payload.max_tokens = body.max_tokens;
+  return payload;
+}
+
+async function forwardUpstream(
+  payload: Record<string, unknown>,
   inboundSecretHeader: string | null,
 ): Promise<NextResponse> {
   const upstream = process.env[AI_GATEWAY_UPSTREAM_URL_ENV]?.trim();
@@ -89,6 +117,21 @@ async function forwardUpstream(
       503,
       "AI gateway upstream is not configured",
       "upstream_misconfigured",
+    );
+  }
+
+  let url: URL;
+  try {
+    url = new URL(upstream);
+  } catch {
+    return jsonError(503, "AI gateway upstream is not configured", "upstream_misconfigured");
+  }
+
+  if (url.protocol !== "https:" && !isLocalHostname(url.hostname)) {
+    return jsonError(
+      503,
+      "AI gateway upstream must use HTTPS",
+      "upstream_insecure",
     );
   }
 
@@ -102,45 +145,62 @@ async function forwardUpstream(
 
   let res: Response;
   try {
-    res = await fetch(upstream, {
+    res = await fetch(url.toString(), {
       method: "POST",
       headers,
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(UPSTREAM_FETCH_TIMEOUT_MS),
     });
   } catch {
     return jsonError(502, "Upstream gateway unreachable", "upstream_unreachable");
   }
 
-  const data: unknown = await res.json().catch(() => ({
-    error: "Invalid upstream response",
-    code: "upstream_invalid_response",
-  }));
-  return NextResponse.json(data, { status: res.status });
+  let data: unknown;
+  let parsedOk = true;
+  try {
+    data = await res.json();
+  } catch {
+    parsedOk = false;
+    data = {
+      error: "Invalid upstream response",
+      code: "upstream_invalid_response",
+    };
+  }
+
+  // Never return 2xx with an error body when JSON parse failed.
+  const status = parsedOk ? res.status : res.ok ? 502 : res.status;
+  return NextResponse.json(data, { status });
 }
 
 export async function POST(
   req: NextRequest,
 ): Promise<NextResponse<GatewaySuccessResponse | GatewayErrorResponse>> {
-  // ── Auth (shared secret header) ───────────────────────────────────────────
-  const auth = authorizeGatewayRequest(req);
-  if (!auth.ok) {
-    return jsonError(auth.status, auth.error, auth.code);
-  }
-
-  // ── Rate limit (per IP) ───────────────────────────────────────────────────
+  // ── Rate limit first (covers auth failures / brute-force) ────────────────
   const ip = clientIp(req);
   const limit = rateLimit(`ai-gateway:${ip}`, { windowMs: 60_000, max: 30 });
   if (!limit.ok) {
     return jsonError(429, "Too many requests", "rate_limited");
   }
 
+  // ── Auth (shared secret header) ───────────────────────────────────────────
+  const auth = authorizeGatewayRequest(req);
+  if (!auth.ok) {
+    return jsonError(auth.status, auth.error, auth.code);
+  }
+
   // ── Parse body ────────────────────────────────────────────────────────────
-  let body: GatewayRequestBody;
+  let parsed: unknown;
   try {
-    body = (await req.json()) as GatewayRequestBody;
+    parsed = await req.json();
   } catch {
     return jsonError(400, "Invalid JSON body", "invalid_json");
   }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return jsonError(400, "Invalid JSON body", "invalid_json");
+  }
+
+  const body = parsed as GatewayRequestBody;
 
   const provider = resolveProvider(body.provider);
   if (!provider) {
@@ -149,6 +209,10 @@ export async function POST(
       `provider is required and must be one of: ${SUPPORTED_PROVIDERS.join(", ")}`,
       "invalid_provider",
     );
+  }
+
+  if (body.model !== undefined && typeof body.model !== "string") {
+    return jsonError(400, "model must be a string", "invalid_model");
   }
 
   const messages = normalizeMessages(body);
@@ -160,13 +224,24 @@ export async function POST(
     );
   }
 
-  if (typeof body.temperature === "number") {
-    if (!Number.isFinite(body.temperature) || body.temperature < 0 || body.temperature > 2) {
+  const totalChars = messages.reduce((n, m) => n + m.content.length, 0);
+  if (totalChars > MAX_MESSAGE_CHARS) {
+    return jsonError(400, "messages exceed maximum size", "payload_too_large");
+  }
+
+  if (body.temperature !== undefined) {
+    if (typeof body.temperature !== "number" || !Number.isFinite(body.temperature)) {
+      return jsonError(400, "temperature must be a number between 0 and 2", "invalid_temperature");
+    }
+    if (body.temperature < 0 || body.temperature > 2) {
       return jsonError(400, "temperature must be between 0 and 2", "invalid_temperature");
     }
   }
-  if (typeof body.max_tokens === "number") {
-    if (!Number.isFinite(body.max_tokens) || body.max_tokens < 1 || body.max_tokens > 128_000) {
+  if (body.max_tokens !== undefined) {
+    if (typeof body.max_tokens !== "number" || !Number.isFinite(body.max_tokens)) {
+      return jsonError(400, "max_tokens must be a number", "invalid_max_tokens");
+    }
+    if (body.max_tokens < 1 || body.max_tokens > 128_000) {
       return jsonError(400, "max_tokens is out of range", "invalid_max_tokens");
     }
   }
@@ -176,9 +251,10 @@ export async function POST(
     const secretHeader =
       req.headers.get(GATEWAY_AUTH_HEADER_NAME) ??
       req.headers.get("x-gateway-secret");
-    return forwardUpstream({ ...body, provider }, secretHeader) as Promise<
-      NextResponse<GatewaySuccessResponse | GatewayErrorResponse>
-    >;
+    return forwardUpstream(
+      buildUpstreamPayload(provider, body, messages),
+      secretHeader,
+    ) as Promise<NextResponse<GatewaySuccessResponse | GatewayErrorResponse>>;
   }
 
   try {
@@ -197,8 +273,11 @@ export async function POST(
     if (err instanceof ProviderHttpError) {
       return jsonError(err.status, err.message, err.code);
     }
-    // Do not log full error objects that might contain request material with secrets.
-    console.error("[api/gateway] unexpected failure");
+    // Log message/stack only — no request bodies or headers.
+    console.error(
+      "[api/gateway] unexpected failure:",
+      err instanceof Error ? err.stack || err.message : "unknown",
+    );
     return jsonError(500, "Internal server error", "internal_error");
   }
 }
