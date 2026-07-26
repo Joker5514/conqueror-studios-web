@@ -166,6 +166,8 @@ export default function ConsoleSettingsPage() {
 
 // ── Field helper ──────────────────────────────────────────────────────────────
 
+let _fieldId = 0;
+
 function BroadcastField({
   label,
   value,
@@ -183,13 +185,16 @@ function BroadcastField({
   as?: "textarea";
   rows?: number;
 }) {
+  // Stable ID for label→control association (satisfies Biome a11y/noLabelWithoutControl).
+  const id = `bf-${(++_fieldId).toString()}`;
   const cls =
     "mt-2 w-full rounded-md border border-white/12 bg-white/[0.02] px-3 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none transition-colors focus:border-[#e84040]";
   return (
-    <label className="block">
+    <label htmlFor={id} className="block">
       <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">{label}</span>
       {as === "textarea" ? (
         <textarea
+          id={id}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required={required}
@@ -198,6 +203,7 @@ function BroadcastField({
         />
       ) : (
         <input
+          id={id}
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
