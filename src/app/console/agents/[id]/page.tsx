@@ -9,7 +9,19 @@ import {
   useUpdateAgent,
   useRunAgent,
   useAgentRuns,
+  useCloneAgent,
 } from "@/hooks/api/useAgents";
+
+const MODELS = [
+  { value: "gpt-4o",           label: "GPT-4o" },
+  { value: "gpt-4o-mini",      label: "GPT-4o mini" },
+  { value: "claude-opus-4",    label: "Claude Opus 4" },
+  { value: "claude-haiku",     label: "Claude Haiku" },
+  { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+  { value: "llama3-70b-8192",  label: "Llama 3 70B (Groq)" },
+  { value: "grok-2",           label: "Grok 2" },
+] as const;
+
 import type { AgentRunRow } from "@/lib/agents/types";
 
 /**
@@ -45,6 +57,7 @@ export default function ConsoleAgentDetailPage() {
 
   const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(id);
   const { mutate: updateAgent, isPending: isSaving } = useUpdateAgent(id);
+  const { mutate: cloneAgent, isPending: isCloning } = useCloneAgent();
   const { mutate: runAgent, isPending: isRunning, data: runResult, error: runError, reset: resetRun } = useRunAgent(id);
   const { data: runsData, isLoading: runsLoading } = useAgentRuns(id);
 
@@ -171,13 +184,24 @@ export default function ConsoleAgentDetailPage() {
             <p className="mt-1 text-[14px] text-white/50">{agent.description}</p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={showEdit ? () => setShowEdit(false) : openEdit}
-          className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/35 hover:text-white transition-colors"
-        >
-          {showEdit ? "Cancel edit" : "Edit ✎"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => agent && cloneAgent({ id: agent.id })}
+            disabled={isCloning || !agent}
+            title="Duplicate this agent"
+            className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/25 hover:text-white transition-colors disabled:opacity-40"
+          >
+            {isCloning ? "Cloning…" : "Clone"}
+          </button>
+          <button
+            type="button"
+            onClick={showEdit ? () => setShowEdit(false) : openEdit}
+            className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/35 hover:text-white transition-colors"
+          >
+            {showEdit ? "Cancel edit" : "Edit ✎"}
+          </button>
+        </div>
       </div>
 
       {/* ── Edit form ──────────────────────────────────────────────────────── */}
@@ -186,8 +210,23 @@ export default function ConsoleAgentDetailPage() {
           <div className="eyebrow mb-2">Edit agent</div>
           <div className="grid gap-4 sm:grid-cols-2">
             <AgentField label="Name *" value={editName} onChange={setEditName} required />
-            <AgentField label="Model" value={editModel} onChange={setEditModel} />
+            <label className="block">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">Model</span>
+              <select
+                value={MODELS.some((m) => m.value === editModel) ? editModel : "custom"}
+                onChange={(e) => { if (e.target.value !== "custom") setEditModel(e.target.value); }}
+                className="mt-2 w-full rounded-md border border-white/12 bg-[#0a0a10] px-3 py-2.5 text-[14px] text-white outline-none transition-colors focus:border-[#e84040] appearance-none cursor-pointer"
+              >
+                {MODELS.map((m) => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
+                <option value="custom">Custom…</option>
+              </select>
+            </label>
           </div>
+          {(!MODELS.some((m) => m.value === editModel)) && (
+            <AgentField label="Custom model ID" value={editModel} onChange={setEditModel} placeholder="provider/model-id" />
+          )}
           <AgentField label="Description" value={editDesc} onChange={setEditDesc} />
           <AgentField
             label="System prompt"

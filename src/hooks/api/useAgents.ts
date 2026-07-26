@@ -182,3 +182,45 @@ export function useRunAgent(id: string) {
     },
   });
 }
+
+// ── Clone ─────────────────────────────────────────────────────────────────────
+
+async function cloneAgent(id: string, name?: string): Promise<AgentRow> {
+  const res = await fetch(`/api/agents/${id}/clone`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(err.error ?? `Clone failed: ${res.status}`);
+  }
+  const data = await res.json() as { agent: AgentRow };
+  return data.agent;
+}
+
+async function fetchRunCount(id: string): Promise<number> {
+  const res = await fetch(`/api/agents/${id}/run-count`);
+  if (!res.ok) return 0;
+  const data = await res.json() as { count: number };
+  return data.count;
+}
+
+/** Clone an agent. Invalidates the agents list on success. */
+export function useCloneAgent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name?: string }) => cloneAgent(id, name),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["agents"] }); },
+  });
+}
+
+/** Fetch the total run count for one agent. */
+export function useAgentRunCount(id: string) {
+  return useQuery({
+    queryKey: ["agents", id, "run-count"],
+    queryFn:  () => fetchRunCount(id),
+    enabled:  Boolean(id),
+    staleTime: 30_000,
+  });
+}
