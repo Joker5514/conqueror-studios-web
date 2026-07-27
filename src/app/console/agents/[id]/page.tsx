@@ -484,20 +484,23 @@ function RunStatusChip({ status }: { status: AgentRunRow["status"] }) {
   );
 }
 
+let _afId = 0;
+
 function AgentField({
   label, value, onChange, type = "text", required, as, rows, placeholder,
 }: {
   label: string; value: string; onChange: (v: string) => void;
   type?: string; required?: boolean; as?: "textarea"; rows?: number; placeholder?: string;
 }) {
+  const id = `af-${(++_afId).toString()}`;
   const cls = "mt-2 w-full rounded-md border border-white/12 bg-white/[0.02] px-3 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none transition-colors focus:border-[#e84040]";
   return (
-    <label className="block">
+    <label htmlFor={id} className="block">
       <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">{label}</span>
       {as === "textarea" ? (
-        <textarea value={value} onChange={(e) => onChange(e.target.value)} required={required} rows={rows} placeholder={placeholder} className={cls} />
+        <textarea id={id} value={value} onChange={(e) => onChange(e.target.value)} required={required} rows={rows} placeholder={placeholder} className={cls} />
       ) : (
-        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} placeholder={placeholder} className={cls} />
+        <input id={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} placeholder={placeholder} className={cls} />
       )}
     </label>
   );
