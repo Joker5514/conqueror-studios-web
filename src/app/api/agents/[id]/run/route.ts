@@ -12,8 +12,11 @@ import type { AgentRow, AgentRunRow } from "@/lib/agents/types";
  *   1. Auth guard + ownership check
  *   2. Load agent definition from DB
  *   3. Call OrchestrAI Nexus /run server-side (NEXUS_URL — never exposed to browser)
- *   4. Persist result to agent_runs via admin client
- *   5. Return run row + trace to caller
+ *   4a. If Nexus responds with text/event-stream or Transfer-Encoding: chunked,
+ *       stream tokens back to the client as SSE (text/event-stream).
+ *       The final "[DONE]" event carries the persisted run row as JSON.
+ *   4b. Otherwise, fall back to the existing buffered JSON response.
+ *   5. Persist result to agent_runs via admin client either way.
  *
  * Architecture rules (AGENTS.md):
  *   - NEXUS_URL must only be used in this file and /api/nexus/route.ts
@@ -24,7 +27,7 @@ const NEXUS_URL = process.env.NEXUS_URL ?? "http://localhost:8000";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
+export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse | Response> {
   const { id } = await ctx.params;
 
   // ── 1. Auth guard ────────────────────────────────────────────────────────────
@@ -62,7 +65,6 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const startedAt     = Date.now();
 
   // ── 4. Insert a `running` run row early so we have an ID ───────────────────
-  // Use admin client so RLS insert policy doesn't block server-side write.
   const admin = createAdminClient();
   const { data: runRow, error: insertErr } = await admin
     .from("agent_runs")
@@ -84,67 +86,138 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const run = runRow as AgentRunRow;
 
   // ── 5. Call Nexus ────────────────────────────────────────────────────────────
-  let nexusData: Record<string, unknown>;
+  const nexusPayload = JSON.stringify({
+    user_id:        user.id,
+    query:          body.input.trim(),
+    correlation_id: correlationId,
+    context: {
+      agent_id:      agentRow.id,
+      agent_name:    agentRow.name,
+      system_prompt: agentRow.system_prompt,
+      model:         agentRow.model,
+      allowed_tools: agentRow.tools.length > 0 ? agentRow.tools : null,
+    },
+  });
+
+  let nexusRes: globalThis.Response;
   try {
-    const nexusRes = await fetch(`${NEXUS_URL}/run`, {
+    nexusRes = await fetch(`${NEXUS_URL}/run`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id:        user.id,
-        query:          body.input.trim(),
-        correlation_id: correlationId,
-        context: {
-          // Pass agent definition so Nexus can constrain its behaviour
-          agent_id:      agentRow.id,
-          agent_name:    agentRow.name,
-          system_prompt: agentRow.system_prompt,
-          model:         agentRow.model,
-          allowed_tools: agentRow.tools.length > 0 ? agentRow.tools : null,
-        },
-      }),
+      body: nexusPayload,
     });
-
-    const raw: unknown = await nexusRes.json().catch(() => ({}));
-    nexusData = raw as Record<string, unknown>;
-
-    const latencyMs = Date.now() - startedAt;
-    const trace     = (nexusData.trace ?? null) as Record<string, unknown> | null;
-    const result    = nexusData.result as Record<string, unknown> | undefined;
-    const answer    = typeof result?.answer === "string" ? result.answer : null;
-    const mode      = typeof nexusData.routing_mode === "string" ? nexusData.routing_mode : null;
-
-    // ── 6. Update run row with result ─────────────────────────────────────────
-    const { data: updatedRun, error: updateErr } = await admin
-      .from("agent_runs")
-      .update({
-        output:       answer ?? JSON.stringify(result ?? nexusData),
-        routing_mode: mode,
-        latency_ms:   latencyMs,
-        trace:        trace,
-        status:       nexusRes.ok ? "done" : "error",
-        error:        nexusRes.ok ? null : String(nexusData.error ?? "Nexus error"),
-      })
-      .eq("id", run.id)
-      .select()
-      .single();
-
-    if (updateErr) console.error("[agent/run] update error", updateErr);
-
-    return NextResponse.json({
-      run:    (updatedRun ?? run) as AgentRunRow,
-      result: nexusData,
-    }, { status: nexusRes.ok ? 200 : 502 });
-
   } catch (err) {
-    // Nexus unreachable — mark run as error
+    // Nexus unreachable
     await admin
       .from("agent_runs")
       .update({ status: "error", error: String(err) })
       .eq("id", run.id);
-
     return NextResponse.json(
       { error: "Nexus service unreachable", detail: String(err), run_id: run.id },
       { status: 502 },
     );
   }
+
+  // ── 6a. Streaming path ───────────────────────────────────────────────────────
+  const contentType  = nexusRes.headers.get("content-type") ?? "";
+  const isStreaming  =
+    contentType.includes("text/event-stream") ||
+    (nexusRes.headers.get("transfer-encoding") ?? "").toLowerCase().includes("chunked");
+
+  if (isStreaming && nexusRes.body) {
+    const readable = nexusRes.body;
+    const textDecoder = new TextDecoder();
+    let accumulated = "";
+
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = readable.getReader();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = textDecoder.decode(value, { stream: true });
+            accumulated += chunk;
+            // Forward raw SSE lines (or plain text) to the client
+            controller.enqueue(new TextEncoder().encode(chunk));
+          }
+        } catch (err) {
+          controller.enqueue(
+            new TextEncoder().encode(`data: [ERROR] ${String(err)}\n\n`),
+          );
+        } finally {
+          // Persist the full accumulated text as the run output
+          const latencyMs = Date.now() - startedAt;
+          await admin
+            .from("agent_runs")
+            .update({
+              output:     accumulated,
+              latency_ms: latencyMs,
+              status:     nexusRes.ok ? "done" : "error",
+              error:      nexusRes.ok ? null : "Nexus stream error",
+            })
+            .eq("id", run.id);
+
+          // Send a final [DONE] event with the run metadata
+          const finalRun: AgentRunRow = {
+            ...run,
+            output:     accumulated,
+            latency_ms: latencyMs,
+            status:     nexusRes.ok ? "done" : "error",
+          };
+          controller.enqueue(
+            new TextEncoder().encode(
+              `data: [DONE] ${JSON.stringify({ run: finalRun })}\n\n`,
+            ),
+          );
+          controller.close();
+          reader.releaseLock();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type":  "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection":    "keep-alive",
+      },
+    });
+  }
+
+  // ── 6b. Buffered (non-streaming) path — identical to original ───────────────
+  let nexusData: Record<string, unknown>;
+  try {
+    const raw: unknown = await nexusRes.json().catch(() => ({}));
+    nexusData = raw as Record<string, unknown>;
+  } catch {
+    nexusData = {};
+  }
+
+  const latencyMs = Date.now() - startedAt;
+  const trace     = (nexusData.trace ?? null) as Record<string, unknown> | null;
+  const result    = nexusData.result as Record<string, unknown> | undefined;
+  const answer    = typeof result?.answer === "string" ? result.answer : null;
+  const mode      = typeof nexusData.routing_mode === "string" ? nexusData.routing_mode : null;
+
+  const { data: updatedRun, error: updateErr } = await admin
+    .from("agent_runs")
+    .update({
+      output:       answer ?? JSON.stringify(result ?? nexusData),
+      routing_mode: mode,
+      latency_ms:   latencyMs,
+      trace:        trace,
+      status:       nexusRes.ok ? "done" : "error",
+      error:        nexusRes.ok ? null : String(nexusData.error ?? "Nexus error"),
+    })
+    .eq("id", run.id)
+    .select()
+    .single();
+
+  if (updateErr) console.error("[agent/run] update error", updateErr);
+
+  return NextResponse.json({
+    run:    (updatedRun ?? run) as AgentRunRow,
+    result: nexusData,
+  }, { status: nexusRes.ok ? 200 : 502 });
 }

@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 import {
   useAgent,
   useUpdateAgent,
-  useRunAgent,
+  useStreamAgentRun,
   useAgentRuns,
   useCloneAgent,
 } from "@/hooks/api/useAgents";
@@ -58,8 +58,41 @@ export default function ConsoleAgentDetailPage() {
   const { data: agent, isLoading: agentLoading, error: agentError } = useAgent(id);
   const { mutate: updateAgent, isPending: isSaving } = useUpdateAgent(id);
   const { mutate: cloneAgent, isPending: isCloning } = useCloneAgent();
-  const { mutate: runAgent, isPending: isRunning, data: runResult, error: runError, reset: resetRun } = useRunAgent(id);
+  const { start: startRun, state: runState, reset: resetRun } = useStreamAgentRun(id);
   const { data: runsData, isLoading: runsLoading } = useAgentRuns(id);
+
+  const isRunning   = runState.isStreaming;
+  const streamText  = runState.text;
+  const runError    = runState.error;
+
+  // ── Status transition ───────────────────────────────────────────────────────
+  const [statusPending, setStatusPending] = useState(false);
+
+  function handleStatusToggle() {
+    if (!agent) return;
+    const { status } = agent;
+    let nextStatus: "draft" | "active" | "archived";
+    let confirmMsg: string;
+
+    if (status === "draft") {
+      nextStatus = "active";
+      confirmMsg = "Activate this agent? It will be marked as ready to run.";
+    } else if (status === "active") {
+      nextStatus = "draft";
+      confirmMsg = "Deactivate this agent? It will be set back to draft.";
+    } else {
+      // archived
+      nextStatus = "draft";
+      confirmMsg = "Unarchive this agent? It will be set back to draft.";
+    }
+
+    if (!window.confirm(confirmMsg)) return;
+    setStatusPending(true);
+    updateAgent(
+      { status: nextStatus },
+      { onSettled: () => setStatusPending(false) },
+    );
+  }
 
   // ── Edit state ──────────────────────────────────────────────────────────────
   const [showEdit, setShowEdit]           = useState(false);
@@ -105,27 +138,20 @@ export default function ConsoleAgentDetailPage() {
     if (!runInput.trim()) return;
     resetRun();
     setShowTrace(false);
-    runAgent(runInput.trim());
-  }, [runInput, runAgent, resetRun]);
+    void startRun(runInput.trim());
+  }, [runInput, startRun, resetRun]);
 
   // ── Result parsing ──────────────────────────────────────────────────────────
-  const nexusResult = runResult?.result;
-  const resultAnswer =
-    nexusResult &&
-    typeof nexusResult.result === "object" &&
-    nexusResult.result !== null &&
-    "answer" in nexusResult.result
-      ? String((nexusResult.result as Record<string, unknown>).answer)
-      : nexusResult
-      ? JSON.stringify(nexusResult.result ?? nexusResult, null, 2)
-      : null;
+  // For the buffered path, runState.result holds the full nexus envelope.
+  const nexusResult = runState.result;
+  const resultAnswer = streamText || null;
 
   const routingMode =
     nexusResult && typeof nexusResult.routing_mode === "string"
       ? nexusResult.routing_mode
-      : null;
+      : runState.run?.routing_mode ?? null;
 
-  const latency = runResult?.run.latency_ms;
+  const latency = runState.run?.latency_ms ?? null;
 
   if (agentLoading) {
     return (
@@ -185,6 +211,37 @@ export default function ConsoleAgentDetailPage() {
           )}
         </div>
         <div className="flex items-center gap-3">
+          {/* ── Status toggle button ──────────────────────────────────────── */}
+          {agent.status === "draft" && (
+            <button
+              type="button"
+              onClick={handleStatusToggle}
+              disabled={statusPending}
+              className="rounded-full border border-[#34d399]/40 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[#34d399] hover:bg-[#34d399]/10 transition-colors disabled:opacity-40"
+            >
+              {statusPending ? "Activating…" : "Activate ✓"}
+            </button>
+          )}
+          {agent.status === "active" && (
+            <button
+              type="button"
+              onClick={handleStatusToggle}
+              disabled={statusPending}
+              className="rounded-full border border-[#f59e0b]/40 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[#f59e0b] hover:bg-[#f59e0b]/10 transition-colors disabled:opacity-40"
+            >
+              {statusPending ? "Deactivating…" : "Deactivate"}
+            </button>
+          )}
+          {agent.status === "archived" && (
+            <button
+              type="button"
+              onClick={handleStatusToggle}
+              disabled={statusPending}
+              className="rounded-full border border-white/20 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-white/40 hover:bg-white/5 transition-colors disabled:opacity-40"
+            >
+              {statusPending ? "Unarchiving…" : "Unarchive"}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => agent && cloneAgent({ id: agent.id })}
@@ -332,37 +389,46 @@ export default function ConsoleAgentDetailPage() {
 
         {runError && (
           <div className="mt-3 rounded-xl border border-[#e84040]/30 bg-[#e84040]/[0.05] px-4 py-3 font-mono text-[12px] text-[#e84040]">
-            {runError instanceof Error ? runError.message : "Run failed"}
+            {runError}
           </div>
         )}
 
-        {/* ── Run result ───────────────────────────────────────────────────── */}
-        {runResult && (
+        {/* ── Run result / streaming display ───────────────────────────────── */}
+        {(isRunning || streamText) && (
           <div className="mt-4 rounded-2xl border border-white/10 bg-[#0a0a10] overflow-hidden">
             {/* Header row */}
             <div className="flex flex-wrap items-center gap-4 border-b border-white/10 px-5 py-4">
-              {routingMode && (
+              {isRunning && (
+                <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#0066ff]">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#0066ff]" />
+                  Streaming…
+                </span>
+              )}
+              {routingMode && !isRunning && (
                 <span className="rounded-full border border-[#34d399]/40 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#34d399]">
                   {routingMode}
                 </span>
               )}
-              {latency != null && (
+              {latency != null && !isRunning && (
                 <span className="font-mono text-[11px] text-white/40">{latency} ms</span>
               )}
-              {runResult.run.correlation_id && (
+              {runState.run?.correlation_id && !isRunning && (
                 <span className="ml-auto font-mono text-[10px] text-white/20 truncate">
-                  {runResult.run.correlation_id}
+                  {runState.run.correlation_id}
                 </span>
               )}
             </div>
-            {/* Answer */}
+            {/* Answer / streamed text */}
             <div className="px-5 py-5">
-              <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/30 mb-2">Answer</div>
-              <pre className="whitespace-pre-wrap text-[14px] leading-relaxed text-white/80 font-sans">
-                {resultAnswer ?? "No answer returned."}
+              <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/30 mb-2">
+                {isRunning ? "Receiving…" : "Answer"}
+              </div>
+              <pre className="whitespace-pre-wrap text-[14px] leading-relaxed text-white/80 font-sans max-h-[480px] overflow-y-auto">
+                {resultAnswer ?? (isRunning ? "" : "No answer returned.")}
+                {isRunning && <span className="animate-pulse text-white/40">▋</span>}
               </pre>
             </div>
-            {/* Trace toggle */}
+            {/* Trace toggle — only available on buffered path */}
             {nexusResult != null && nexusResult.trace != null && (
               <div className="border-t border-white/10 px-5 py-3">
                 <button
@@ -385,12 +451,23 @@ export default function ConsoleAgentDetailPage() {
 
       {/* ── Run history ────────────────────────────────────────────────────── */}
       <section>
-        <div className="eyebrow mb-4">
-          Run history
-          {runsData && (
-            <span className="ml-2 font-mono text-[10px] text-white/35 normal-case tracking-normal">
-              ({runsData.total})
-            </span>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="eyebrow">
+            Run history
+            {runsData && (
+              <span className="ml-2 font-mono text-[10px] text-white/35 normal-case tracking-normal">
+                ({runsData.total})
+              </span>
+            )}
+          </div>
+          {runsData && runsData.total > 0 && (
+            <button
+              type="button"
+              onClick={() => void exportRunsCsv(id, agent.name)}
+              className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/30 hover:text-white transition-colors"
+            >
+              ↓ Export CSV
+            </button>
           )}
         </div>
 
@@ -467,6 +544,54 @@ export default function ConsoleAgentDetailPage() {
       </section>
     </div>
   );
+}
+
+// ── CSV export ────────────────────────────────────────────────────────────────
+
+function csvEscape(v: string | null | undefined): string {
+  const s = v ?? "";
+  if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+async function exportRunsCsv(agentId: string, agentName: string): Promise<void> {
+  const res = await fetch(`/api/agents/${agentId}/runs?limit=1000&offset=0`);
+  if (!res.ok) { window.alert("Failed to load runs for export."); return; }
+  const { runs } = await res.json() as { runs: Array<{
+    created_at: string;
+    status: string;
+    routing_mode: string | null;
+    latency_ms: number | null;
+    input: string;
+    output: string | null;
+    correlation_id: string | null;
+  }> };
+
+  const header = ["Date", "Status", "Routing Mode", "Latency (ms)", "Input", "Output", "Correlation ID"];
+  const rows = runs.map((r) => [
+    csvEscape(new Date(r.created_at).toISOString()),
+    csvEscape(r.status),
+    csvEscape(r.routing_mode),
+    csvEscape(r.latency_ms?.toString()),
+    csvEscape(r.input),
+    csvEscape(r.output),
+    csvEscape(r.correlation_id),
+  ].join(","));
+
+  const csv = [header.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+  const safeName = agentName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  a.href = url;
+  a.download = `${safeName}-runs-${date}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

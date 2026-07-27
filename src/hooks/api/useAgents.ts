@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useCallback } from "react";
 import type { AgentRow, AgentRunRow } from "@/lib/agents/types";
 
 /**
@@ -223,4 +224,123 @@ export function useAgentRunCount(id: string) {
     enabled:  Boolean(id),
     staleTime: 30_000,
   });
+}
+
+// ── Streaming run ─────────────────────────────────────────────────────────────
+
+export interface StreamRunState {
+  /** Tokens accumulated so far */
+  text: string;
+  /** Whether the stream is still in progress */
+  isStreaming: boolean;
+  /** The persisted run row (available once [DONE] arrives or buffered JSON resolves) */
+  run: AgentRunRow | null;
+  /** Non-streaming result envelope (buffered path) */
+  result: Record<string, unknown> | null;
+  error: string | null;
+}
+
+/**
+ * useStreamAgentRun — executes a run and streams tokens if the API returns SSE.
+ * Falls back gracefully to the existing buffered JSON path.
+ *
+ * Usage:
+ *   const { start, state, reset } = useStreamAgentRun(id);
+ *   start("my input");
+ */
+export function useStreamAgentRun(agentId: string) {
+  const qc = useQueryClient();
+
+  const [state, setState] = useState<StreamRunState>({
+    text: "",
+    isStreaming: false,
+    run: null,
+    result: null,
+    error: null,
+  });
+
+  const reset = useCallback(() => {
+    setState({ text: "", isStreaming: false, run: null, result: null, error: null });
+  }, []);
+
+  const start = useCallback(
+    async (input: string) => {
+      reset();
+      setState((s) => ({ ...s, isStreaming: true }));
+
+      try {
+        const res = await fetch(`/api/agents/${agentId}/run`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({})) as { error?: string };
+          setState({ text: "", isStreaming: false, run: null, result: null, error: err.error ?? `Run failed: ${res.status}` });
+          return;
+        }
+
+        const contentType = res.headers.get("content-type") ?? "";
+
+        if (contentType.includes("text/event-stream") && res.body) {
+          // ── SSE streaming path ────────────────────────────────────────────────
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let accumulated = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            // Parse SSE lines
+            for (const line of chunk.split("\n")) {
+              if (!line.startsWith("data: ")) {
+                if (line.trim()) accumulated += line;
+                continue;
+              }
+              const payload = line.slice("data: ".length).trim();
+              if (payload.startsWith("[DONE]")) {
+                const meta = payload.slice("[DONE] ".length);
+                try {
+                  const { run: doneRun } = JSON.parse(meta) as { run: AgentRunRow };
+                  setState({ text: accumulated, isStreaming: false, run: doneRun, result: null, error: null });
+                  void qc.invalidateQueries({ queryKey: ["agents", agentId, "runs"] });
+                } catch {
+                  setState((s) => ({ ...s, isStreaming: false }));
+                }
+                return;
+              }
+              if (payload.startsWith("[ERROR]")) {
+                setState({ text: accumulated, isStreaming: false, run: null, result: null, error: payload.slice("[ERROR] ".length) });
+                return;
+              }
+              accumulated += payload;
+              setState((s) => ({ ...s, text: accumulated }));
+            }
+          }
+          setState((s) => ({ ...s, isStreaming: false }));
+
+        } else {
+          // ── Buffered JSON path ────────────────────────────────────────────────
+          const data = await res.json() as { run: AgentRunRow; result: Record<string, unknown> };
+          const answer =
+            data.result &&
+            typeof data.result.result === "object" &&
+            data.result.result !== null &&
+            "answer" in data.result.result
+              ? String((data.result.result as Record<string, unknown>).answer)
+              : JSON.stringify(data.result?.result ?? data.result, null, 2);
+
+          setState({ text: answer, isStreaming: false, run: data.run, result: data.result, error: null });
+          void qc.invalidateQueries({ queryKey: ["agents", agentId, "runs"] });
+        }
+      } catch (err) {
+        setState({ text: "", isStreaming: false, run: null, result: null, error: String(err) });
+      }
+    },
+    [agentId, qc, reset],
+  );
+
+  return { start, state, reset };
 }

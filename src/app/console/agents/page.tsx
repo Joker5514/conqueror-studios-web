@@ -20,8 +20,8 @@ import type { AgentRow } from "@/lib/agents/types";
  * Features:
  *   - Agent cards with status dot, model badge, run-count badge
  *   - Inline search/filter
- *   - Create form with model dropdown
- *   - Clone (duplicate) agent with single click
+ *   - Create form with model dropdown (with starter templates)
+ *   - Clone (duplicate) agent with single click + auto-rename on conflict
  *   - Quick-run input inline on each card
  *   - Delete with confirmation
  */
@@ -43,6 +43,65 @@ const MODELS = [
   { value: "llama3-70b-8192",   label: "Llama 3 70B (Groq)" },
   { value: "grok-2",            label: "Grok 2" },
 ] as const;
+
+// ── Agent Templates ───────────────────────────────────────────────────────────
+
+interface AgentTemplate {
+  name: string;
+  description: string;
+  system_prompt: string;
+  model: string;
+  tools: string;
+  icon: string;
+}
+
+const AGENT_TEMPLATES: AgentTemplate[] = [
+  {
+    name: "Research Assistant",
+    icon: "🔍",
+    description: "Web research, synthesis, and fact-checking.",
+    model: "gpt-4o",
+    tools: "search_web",
+    system_prompt:
+      "You are a precise research assistant. When given a topic, you search the web for authoritative sources, synthesise key findings, and return a concise, well-structured summary with citations. Always distinguish facts from speculation, and flag information that requires further verification.",
+  },
+  {
+    name: "Code Reviewer",
+    icon: "🛠",
+    description: "Code review, bug detection, and improvement suggestions.",
+    model: "gpt-4o",
+    tools: "",
+    system_prompt:
+      "You are an expert software engineer performing code reviews. Analyse the provided code for bugs, security vulnerabilities, performance issues, and style violations. Return structured feedback with severity levels (critical / warning / suggestion), a brief rationale for each finding, and a concrete fix where applicable.",
+  },
+  {
+    name: "Data Analyst",
+    icon: "📊",
+    description: "Data analysis, patterns, and visualisation recommendations.",
+    model: "gpt-4o",
+    tools: "",
+    system_prompt:
+      "You are a skilled data analyst. When presented with datasets or descriptions, identify trends, anomalies, and statistical patterns. Summarise key insights clearly, suggest appropriate chart types or visualisations, and explain what the data implies for business or research decisions.",
+  },
+  {
+    name: "Customer Support",
+    icon: "💬",
+    description: "Empathetic, efficient support responses.",
+    model: "gpt-4o-mini",
+    tools: "",
+    system_prompt:
+      "You are a friendly and empathetic customer support specialist. Respond to customer enquiries with warmth, clarity, and efficiency. Always acknowledge the customer's concern, provide a clear solution or next step, and close with an invitation to reach out again. If you cannot resolve an issue, escalate it gracefully.",
+  },
+  {
+    name: "Content Writer",
+    icon: "✍️",
+    description: "Clear, engaging content for any medium.",
+    model: "gpt-4o",
+    tools: "",
+    system_prompt:
+      "You are a versatile content writer. Produce clear, engaging, and audience-appropriate copy for blogs, marketing materials, social posts, and documentation. Match the requested tone (professional, conversational, technical) and always optimise for readability. Include a compelling headline and a call-to-action where relevant.",
+  },
+];
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -67,6 +126,9 @@ export default function ConsoleAgentsPage() {
   const [quickRunId, setQuickRunId]         = useState<string | null>(null);
   const [quickRunInput, setQuickRunInput]   = useState("");
 
+  // ── Clone toast ──────────────────────────────────────────────────────────────
+  const [cloneToast, setCloneToast]         = useState<string | null>(null);
+
   const filtered = useMemo(() => {
     if (!agents) return [];
     const q = search.trim().toLowerCase();
@@ -79,6 +141,22 @@ export default function ConsoleAgentsPage() {
     );
   }, [agents, search]);
 
+  function resetForm() {
+    setName(""); setDescription(""); setSystemPrompt(""); setToolsInput("");
+    setModel("gpt-4o");
+  }
+
+  function applyTemplate(tpl: AgentTemplate) {
+    setName(tpl.name);
+    setDescription(tpl.description);
+    setSystemPrompt(tpl.system_prompt);
+    setModel(tpl.model);
+    setToolsInput(tpl.tools);
+    setShowForm(true);
+    // Scroll to top so the form is visible
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     const tools = toolsInput.split(",").map((t) => t.trim()).filter(Boolean);
@@ -87,8 +165,7 @@ export default function ConsoleAgentsPage() {
       {
         onSuccess() {
           setShowForm(false);
-          setName(""); setDescription(""); setSystemPrompt(""); setToolsInput("");
-          setModel("gpt-4o");
+          resetForm();
         },
       },
     );
@@ -99,12 +176,55 @@ export default function ConsoleAgentsPage() {
     deleteAgent(agent.id);
   }
 
-  function handleClone(agent: AgentRow) {
-    cloneAgent({ id: agent.id });
+  // ── Clone with auto-rename on 409 conflict ───────────────────────────────────
+  async function handleClone(agent: AgentRow) {
+    const baseName = agent.name;
+    const attempts = ["", " (copy)", " (copy 2)", " (copy 3)", " (copy 4)", " (copy 5)"];
+
+    for (let i = 0; i < attempts.length; i++) {
+      const candidateName = i === 0 ? undefined : `${baseName}${attempts[i]}`;
+      try {
+        await new Promise<void>((resolve, reject) => {
+          cloneAgent(
+            { id: agent.id, name: candidateName },
+            {
+              onSuccess(cloned) {
+                const finalName = cloned.name;
+                if (finalName !== baseName) {
+                  setCloneToast(`Cloned as "${finalName}"`);
+                  window.setTimeout(() => setCloneToast(null), 4000);
+                }
+                resolve();
+              },
+              onError(err) { reject(err); },
+            },
+          );
+        });
+        return; // success — stop retrying
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("409") || msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("already exists")) {
+          if (i === attempts.length - 1) {
+            window.alert("Could not clone: too many copies already exist.");
+          }
+          continue; // try next name
+        }
+        // Non-409 error — surface it
+        window.alert(`Clone failed: ${msg}`);
+        return;
+      }
+    }
   }
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 space-y-8">
+
+      {/* ── Clone toast ────────────────────────────────────────────────────── */}
+      {cloneToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-xl border border-[#34d399]/30 bg-[#0a0a10] px-5 py-3 font-mono text-[12px] text-[#34d399] shadow-lg">
+          {cloneToast}
+        </div>
+      )}
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -116,7 +236,7 @@ export default function ConsoleAgentsPage() {
         </div>
         <button
           type="button"
-          onClick={() => setShowForm((v) => !v)}
+          onClick={() => { setShowForm((v) => !v); if (showForm) resetForm(); }}
           className="cs-btn-deploy px-5 py-2 text-[10px]"
         >
           {showForm ? "Cancel" : "+ New Agent"}
@@ -199,6 +319,38 @@ export default function ConsoleAgentsPage() {
             </button>
           </div>
         </form>
+      )}
+
+      {/* ── Templates section ──────────────────────────────────────────────── */}
+      {!showForm && (
+        <section>
+          <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/30">
+            Start from a template
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {AGENT_TEMPLATES.map((tpl) => (
+              <button
+                key={tpl.name}
+                type="button"
+                onClick={() => applyTemplate(tpl)}
+                className="group rounded-xl border border-white/8 bg-white/[0.02] p-4 text-left transition-colors hover:border-[#e84040]/30 hover:bg-[#e84040]/[0.03]"
+              >
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-[18px]">{tpl.icon}</span>
+                  <span className="font-mono text-[11px] font-medium text-white/70 group-hover:text-white transition-colors">
+                    {tpl.name}
+                  </span>
+                  <span className="ml-auto rounded-full border border-white/10 px-2 py-0.5 font-mono text-[9px] text-white/30">
+                    {tpl.model}
+                  </span>
+                </div>
+                <p className="text-[12px] leading-relaxed text-white/35 group-hover:text-white/50 transition-colors">
+                  {tpl.description}
+                </p>
+              </button>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* ── Error ──────────────────────────────────────────────────────────── */}
