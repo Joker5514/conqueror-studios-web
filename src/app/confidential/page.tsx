@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Section } from "@/components/site/Section";
@@ -16,19 +15,19 @@ export default function ConfidentialPage() {
         <div className="mx-auto max-w-3xl text-center">
           <span className="eyebrow">Restricted</span>
           <h1 className="mt-4 text-balance text-4xl font-medium tracking-tight sm:text-5xl">
-            A project we can't name yet.
+            A project we can&apos;t name yet.
           </h1>
           <p className="mt-5 text-[16px] leading-relaxed text-white/65">
-            One of the lab's most ambitious bets is currently under NDA. We can
+            One of the lab&apos;s most ambitious bets is currently under NDA. We can
             share details with qualified partners, investors, and collaborators
             under a mutual NDA.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/support" className="btn btn-primary">
-              Request a briefing
+            <Link href="/support" className="cs-btn-deploy">
+              REQUEST A BRIEFING →
             </Link>
-            <Link href="/projects" className="btn btn-secondary">
-              See what's public
+            <Link href="/projects" className="cs-btn-outline">
+              SEE WHAT&apos;S PUBLIC
             </Link>
           </div>
         </div>

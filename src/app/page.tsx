@@ -1,7 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import HudCorners from "@/components/site/HudCorners";
 import ProjectCard from "@/components/site/ProjectCard";
 import { flagshipProjects, inStudyProjects, repoCategories } from "@/lib/projects";
+
+export const metadata: Metadata = {
+  title: "Conqueror Studios — Git-native AI agent platform",
+  description:
+    "Independent AI R&D lab building multi-agent orchestration, voice-first interfaces, and federated agentic architectures. OrchestrAI Nexus · AI Bridge · VoiceIsolate Pro.",
+  openGraph: {
+    title: "Conqueror Studios — Git-native AI agent platform",
+    description:
+      "Independent AI R&D lab building multi-agent orchestration, voice-first interfaces, and federated agentic architectures.",
+    url: "https://conquerorstudios.dev",
+  },
+};
 
 export default function HomePage() {
   return (
