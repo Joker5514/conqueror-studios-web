@@ -11,6 +11,8 @@ import {
   useAgentRunCount,
 } from "@/hooks/api/useAgents";
 import type { AgentRow } from "@/lib/agents/types";
+import { AGENT_TEMPLATES } from "@/lib/agents/templates";
+import type { AgentTemplate } from "@/lib/agents/templates";
 
 /**
  * src/app/console/agents/page.tsx
@@ -43,65 +45,6 @@ const MODELS = [
   { value: "llama3-70b-8192",   label: "Llama 3 70B (Groq)" },
   { value: "grok-2",            label: "Grok 2" },
 ] as const;
-
-// ── Agent Templates ───────────────────────────────────────────────────────────
-
-interface AgentTemplate {
-  name: string;
-  description: string;
-  system_prompt: string;
-  model: string;
-  tools: string;
-  icon: string;
-}
-
-const AGENT_TEMPLATES: AgentTemplate[] = [
-  {
-    name: "Research Assistant",
-    icon: "🔍",
-    description: "Web research, synthesis, and fact-checking.",
-    model: "gpt-4o",
-    tools: "search_web",
-    system_prompt:
-      "You are a precise research assistant. When given a topic, you search the web for authoritative sources, synthesise key findings, and return a concise, well-structured summary with citations. Always distinguish facts from speculation, and flag information that requires further verification.",
-  },
-  {
-    name: "Code Reviewer",
-    icon: "🛠",
-    description: "Code review, bug detection, and improvement suggestions.",
-    model: "gpt-4o",
-    tools: "",
-    system_prompt:
-      "You are an expert software engineer performing code reviews. Analyse the provided code for bugs, security vulnerabilities, performance issues, and style violations. Return structured feedback with severity levels (critical / warning / suggestion), a brief rationale for each finding, and a concrete fix where applicable.",
-  },
-  {
-    name: "Data Analyst",
-    icon: "📊",
-    description: "Data analysis, patterns, and visualisation recommendations.",
-    model: "gpt-4o",
-    tools: "",
-    system_prompt:
-      "You are a skilled data analyst. When presented with datasets or descriptions, identify trends, anomalies, and statistical patterns. Summarise key insights clearly, suggest appropriate chart types or visualisations, and explain what the data implies for business or research decisions.",
-  },
-  {
-    name: "Customer Support",
-    icon: "💬",
-    description: "Empathetic, efficient support responses.",
-    model: "gpt-4o-mini",
-    tools: "",
-    system_prompt:
-      "You are a friendly and empathetic customer support specialist. Respond to customer enquiries with warmth, clarity, and efficiency. Always acknowledge the customer's concern, provide a clear solution or next step, and close with an invitation to reach out again. If you cannot resolve an issue, escalate it gracefully.",
-  },
-  {
-    name: "Content Writer",
-    icon: "✍️",
-    description: "Clear, engaging content for any medium.",
-    model: "gpt-4o",
-    tools: "",
-    system_prompt:
-      "You are a versatile content writer. Produce clear, engaging, and audience-appropriate copy for blogs, marketing materials, social posts, and documentation. Match the requested tone (professional, conversational, technical) and always optimise for readability. Include a compelling headline and a call-to-action where relevant.",
-  },
-];
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -336,17 +279,20 @@ export default function ConsoleAgentsPage() {
                 className="group rounded-xl border border-white/8 bg-white/[0.02] p-4 text-left transition-colors hover:border-[#e84040]/30 hover:bg-[#e84040]/[0.03]"
               >
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="text-[18px]">{tpl.icon}</span>
+                  <span className="text-[18px] leading-none">{tpl.icon}</span>
                   <span className="font-mono text-[11px] font-medium text-white/70 group-hover:text-white transition-colors">
                     {tpl.name}
                   </span>
-                  <span className="ml-auto rounded-full border border-white/10 px-2 py-0.5 font-mono text-[9px] text-white/30">
-                    {tpl.model}
+                  <span className="ml-auto rounded-full border border-white/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wide text-white/25">
+                    {tpl.category}
                   </span>
                 </div>
                 <p className="text-[12px] leading-relaxed text-white/35 group-hover:text-white/50 transition-colors">
                   {tpl.description}
                 </p>
+                <div className="mt-2 font-mono text-[9px] text-white/20 group-hover:text-white/35 transition-colors">
+                  {tpl.model}{tpl.tools ? ` · ${tpl.tools}` : ""}
+                </div>
               </button>
             ))}
           </div>
