@@ -90,7 +90,10 @@ export default function ConsoleAgentDetailPage() {
     setStatusPending(true);
     updateAgent(
       { status: nextStatus },
-      { onSettled: () => setStatusPending(false) },
+      {
+        onSettled: () => setStatusPending(false),
+        onError: (err) => window.alert(err instanceof Error ? err.message : "Failed to update agent status."),
+      },
     );
   }
 
