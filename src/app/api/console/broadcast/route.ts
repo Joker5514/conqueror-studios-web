@@ -24,6 +24,13 @@ export async function POST(request: Request): Promise<NextResponse> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const ownerEmails = process.env.CONSOLE_OWNER_EMAILS?.trim();
+  if (ownerEmails) {
+    const allowed = ownerEmails.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+    if (!user.email || !allowed.includes(user.email.toLowerCase())) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
   // ── Parse body ──────────────────────────────────────────────────────────────
   let body: Partial<BroadcastBody>;
   try {
