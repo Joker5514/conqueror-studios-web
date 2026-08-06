@@ -22,7 +22,7 @@ export function UnsubscribeForm({
   const [status, setStatus] = useState<"idle" | "pending" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: import("react").FormEvent) {
     e.preventDefault();
     setStatus("pending");
     setErrorMsg("");
