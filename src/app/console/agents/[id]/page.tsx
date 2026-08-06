@@ -271,7 +271,7 @@ export default function ConsoleAgentDetailPage() {
               <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">Model</span>
               <select
                 value={MODELS.some((m) => m.value === editModel) ? editModel : "custom"}
-                onChange={(e) => { if (e.target.value !== "custom") setEditModel(e.target.value); }}
+onChange={(e) => { setEditModel(e.target.value === "custom" ? "" : e.target.value); }}
                 className="mt-2 w-full rounded-md border border-white/12 bg-[#0a0a10] px-3 py-2.5 text-[14px] text-white outline-none transition-colors focus:border-[#e84040] appearance-none cursor-pointer"
               >
                 {MODELS.map((m) => (
