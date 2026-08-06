@@ -88,7 +88,6 @@ export default function ConsolePage() {
             const next = [entry, ...prev].slice(0, MAX_HISTORY);
             writeHistory(next);
             return next;
-            return [entry, ...prev].slice(0, MAX_HISTORY);
           });
         },
       },

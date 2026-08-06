@@ -30,17 +30,17 @@ function exportCsv(rows: {
   message: string | null;
 }[]): void {
   const headers = ["Date", "Name", "Email", "Org", "Interests", "Message"];
-  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const escapeCsv = (v: string) => `"${v.replace(/"/g, '""')}"`;
   const lines = [
     headers.join(","),
     ...rows.map((r) =>
       [
         new Date(r.created_at).toISOString(),
-        escape(r.name ?? ""),
-        escape(r.email),
-        escape(r.org ?? ""),
-        escape((r.interests ?? []).join("; ")),
-        escape(r.message ?? ""),
+        escapeCsv(r.name ?? ""),
+        escapeCsv(r.email),
+        escapeCsv(r.org ?? ""),
+        escapeCsv((r.interests ?? []).join("; ")),
+        escapeCsv(r.message ?? ""),
       ].join(","),
     ),
   ];

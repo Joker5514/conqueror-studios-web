@@ -42,11 +42,12 @@ export default async function BillingPage() {
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://conquerorstudios.dev");
 
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    if (stripeSecretKey) {
+    const customerId = subscription?.stripe_customer_id;
+    if (stripeSecretKey && customerId) {
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(stripeSecretKey);
       const session = await stripe.billingPortal.sessions.create({
-        customer:   subscription!.stripe_customer_id!,
+        customer:   customerId,
         return_url: `${siteUrl}/billing`,
       });
       redirect(session.url);
