@@ -31,7 +31,7 @@ export default function ConsoleSettingsPage() {
   const [ctaUrl, setCtaUrl] = useState("https://conquerorstudios.dev/projects");
   const [ctaLabel, setCtaLabel] = useState("Explore the lab");
 
-  function handleBroadcast(e: React.FormEvent) {
+  function handleBroadcast(e: import("react").FormEvent) {
     e.preventDefault();
     reset();
     broadcast({ headline, summary, cta_url: ctaUrl, cta_label: ctaLabel });
