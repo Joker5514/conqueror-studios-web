@@ -8,8 +8,9 @@ import { useMountEffect } from "@/hooks/useMountEffect";
 const navLinks = [
   { href: "/projects", label: "Projects" },
   { href: "/agents", label: "Agents" },
+  { href: "/orchestrai", label: "Nexus" },
+  { href: "/aibridge", label: "AI Bridge" },
   { href: "/studio", label: "Studio" },
-  { href: "/waitlist", label: "Waitlist" },
   { href: "/support", label: "Support" },
   { href: "/console", label: "Console" },
 ];

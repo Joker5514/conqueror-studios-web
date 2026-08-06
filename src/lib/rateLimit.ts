@@ -1,6 +1,29 @@
 /**
  * src/lib/rateLimit.ts
  *
+ * Sliding-window rate limiter with an in-process Map store.
+ *
+ * ── Upstash Redis swap ────────────────────────────────────────────────────────
+ * The Map store works correctly within a single serverless process (single-region
+ * Vercel or Railway). For multi-region deployments replace the store with Upstash:
+ *
+ *   import { Redis } from "@upstash/redis";
+ *   const redis = Redis.fromEnv();               // UPSTASH_REDIS_REST_URL + TOKEN
+ *
+ *   // In rateLimit(), replace the Map get/set block with:
+ *   const key = `rl:${rawKey}`;
+ *   const [[, count], [, resetAt]] = await redis.pipeline()
+ *     .incr(key)
+ *     .pexpireat(key, Date.now() + windowMs)   // set TTL only on first call
+ *     .exec();
+ *   return { ok: (count as number) <= max, remaining: Math.max(0, max - (count as number)), resetAt };
+ *
+ * The public rateLimit(key, opts) signature stays identical.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ * Usage:
+ *   const result = rateLimit(`waitlist:${ip}`, { windowMs: 60_000, max: 3 });
+ *   if (!result.ok) return { ok: false, error: "Too many requests." };
  * Lightweight in-process sliding-window rate limiter.
  *
  * Works in Node.js serverless functions (one process per cold start).
@@ -17,6 +40,7 @@ interface Entry {
   timestamps: number[];
 }
 
+// Module-level store — survives across requests within the same process instance.
 // Module-level store survives across requests within the same process.
 const store = new Map<string, Entry>();
 

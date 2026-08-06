@@ -1,5 +1,5 @@
-/* eslint-disable react/no-unescaped-entities */
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Section, SectionHead } from "@/components/site/Section";
 import ProductHero from "@/components/site/ProductHero";
 import FeatureGrid from "@/components/site/FeatureGrid";
@@ -95,7 +95,7 @@ export default function AiBridgePage() {
             ))}
           </ul>
           <div className="panel-strong overflow-hidden rounded-2xl">
-            <img src="/assets/ai_bridge_overview.png" alt="AI Bridge architecture" className="w-full" />
+            <Image src="/assets/ai_bridge_overview.png" alt="AI Bridge architecture" className="w-full" width={800} height={450} />
           </div>
         </div>
       </Section>

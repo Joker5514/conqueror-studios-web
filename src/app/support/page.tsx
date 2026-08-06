@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Section, SectionHead } from "@/components/site/Section";

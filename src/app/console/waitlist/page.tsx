@@ -1,25 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useConsoleWaitlist } from "@/hooks/api/useConsoleWaitlist";
 
 /**
  * src/app/console/waitlist/page.tsx
  *
  * Owner Console — Waitlist sub-page.
- * Displays waitlist signups with pagination.
+ * Displays waitlist signups with pagination and CSV export.
  */
 
 const PAGE_SIZE = 50;
 
 function formatSignupDate(iso: string): string {
-  // Explicit locale + UTC avoids SSR/browser timezone mismatches.
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+function exportCsv(rows: {
+  created_at: string;
+  name: string | null;
+  email: string;
+  org: string | null;
+  interests: string[] | null;
+  message: string | null;
+}[]): void {
+  const headers = ["Date", "Name", "Email", "Org", "Interests", "Message"];
+  const escapeCsv = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const lines = [
+    headers.join(","),
+    ...rows.map((r) =>
+      [
+        new Date(r.created_at).toISOString(),
+        escapeCsv(r.name ?? ""),
+        escapeCsv(r.email),
+        escapeCsv(r.org ?? ""),
+        escapeCsv((r.interests ?? []).join("; ")),
+        escapeCsv(r.message ?? ""),
+      ].join(","),
+    ),
+  ];
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `waitlist-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export default function ConsoleWaitlistPage() {
@@ -39,29 +70,48 @@ export default function ConsoleWaitlistPage() {
   if (error) subtitle = "Failed to load";
   else if (data) subtitle = `${total} signup${total !== 1 ? "s" : ""}`;
 
+  const handleExport = useCallback(() => {
+    if (data?.rows) exportCsv(data.rows);
+  }, [data]);
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 space-y-8">
+
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="eyebrow mb-1">Waitlist</div>
           <p className="text-[13px] text-white/40">{subtitle}</p>
         </div>
-        <button
-          type="button"
-          onClick={() => void refetch()}
-          disabled={isFetching}
-          className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/30 transition-colors hover:text-white disabled:opacity-50"
-        >
-          Refresh ↺
-        </button>
+        <div className="flex items-center gap-4">
+          {data && data.rows.length > 0 && (
+            <button
+              type="button"
+              onClick={handleExport}
+              className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/30 transition-colors hover:text-white"
+            >
+              Export CSV ↓
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+            className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/30 transition-colors hover:text-white disabled:opacity-50"
+          >
+            Refresh ↺
+          </button>
+        </div>
       </div>
 
+      {/* ── Error ──────────────────────────────────────────────────────────── */}
       {error && (
         <div className="rounded-xl border border-[#e84040]/30 bg-[#e84040]/[0.05] px-4 py-3 font-mono text-[12px] text-[#e84040]">
           {error instanceof Error ? error.message : "Failed to load waitlist."}
         </div>
       )}
 
+      {/* ── Loading skeleton ───────────────────────────────────────────────── */}
       {isLoading && (
         <div className="space-y-2">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -73,6 +123,7 @@ export default function ConsoleWaitlistPage() {
         </div>
       )}
 
+      {/* ── Table ──────────────────────────────────────────────────────────── */}
       {data && data.rows.length > 0 && (
         <>
           <div className="rounded-2xl border border-white/10 overflow-x-auto">
@@ -159,6 +210,7 @@ export default function ConsoleWaitlistPage() {
         </>
       )}
 
+      {/* ── Empty state ────────────────────────────────────────────────────── */}
       {data && data.rows.length === 0 && (
         <div className="rounded-2xl border border-white/10 bg-[#0a0a10] px-6 py-16 text-center">
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/25">
