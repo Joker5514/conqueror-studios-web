@@ -68,7 +68,7 @@ bun dev
 bun dev              # Next.js dev server (Turbopack)
 bun run build        # Production build
 bun run typecheck    # tsc --noEmit (strict mode)
-bun run lint         # ESLint + Biome + localhost guard
+bun run lint         # localhost guard + ESLint
 bun test             # Bun test runner
 bun test --coverage  # With code coverage
 ```
