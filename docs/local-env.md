@@ -70,7 +70,7 @@ BRIDGE_URL=http://localhost:8001            # AI Bridge
 bun dev              # Start Next.js dev server with Turbopack
 bun run build        # Production build (run before opening any PR)
 bun run typecheck    # TypeScript strict check — must exit 0
-bun run lint         # ESLint + Biome + localhost guard — must exit 0
+bun run lint         # ESLint + localhost guard — must exit 0
 bun test             # Bun test runner — all tests must pass
 bun test --coverage  # With coverage report
 ```
