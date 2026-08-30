@@ -128,7 +128,7 @@ fi
 SUPABASE_BASE="${NEXT_PUBLIC_SUPABASE_URL:-}"
 if [[ -n "$SUPABASE_BASE" ]] && [[ "$SUPABASE_BASE" != *"xxxxxxxxxxxxxxxxxxxx"* ]]; then
   info "Probing Supabase at ${SUPABASE_BASE}…"
-  if curl -sf --max-time 5 "${SUPABASE_BASE}/rest/v1/" -o /dev/null; then
+  if curl -sf --max-time 5 -H "apikey: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}" "${SUPABASE_BASE}/rest/v1/" -o /dev/null; then
     ok "Supabase is reachable."
   else
     warn "Could not reach Supabase at ${SUPABASE_BASE}."
