@@ -7,16 +7,17 @@ import Link from "next/link";
  * src/app/unsubscribe/UnsubscribeForm.tsx
  *
  * Client component — handles the unsubscribe form + POST /api/unsubscribe.
- * Pre-fills the email from the ?email= query param when present.
+ * Pre-fills a signed recipient link from the ?email=&token= query params.
  */
 
 export function UnsubscribeForm({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; token?: string }>;
 }) {
   const params = use(searchParams);
   const prefill = params.email ?? "";
+  const token = params.token ?? "";
 
   const [email, setEmail] = useState(prefill);
   const [status, setStatus] = useState<"idle" | "pending" | "done" | "error">("idle");
@@ -30,7 +31,7 @@ export function UnsubscribeForm({
       const res = await fetch("/api/unsubscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, token }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({})) as { error?: string };
@@ -63,6 +64,18 @@ export function UnsubscribeForm({
         >
           &larr; Back to the lab
         </Link>
+      </div>
+    );
+  }
+
+  if (!token) {
+    return (
+      <div className="panel-strong p-8">
+        <span className="eyebrow">Link required</span>
+        <p className="mt-3 text-[14px] leading-relaxed text-white/55">
+          Use the unsubscribe link from a Conqueror Studios email. It verifies
+          that this request belongs to the recipient.
+        </p>
       </div>
     );
   }

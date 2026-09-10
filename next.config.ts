@@ -43,7 +43,11 @@ const allowedDevOrigins = Array.from(
 
 const nextConfig: NextConfig = {
   allowedDevOrigins,
-  turbopack: {},
+  turbopack: {
+    // Keep Turbopack inside this repository when a parent directory contains
+    // an unrelated workspace manifest.
+    root: process.cwd(),
+  },
   webpack: (config) => {
     if (isPreviewOrStaging) {
       config.optimization = {

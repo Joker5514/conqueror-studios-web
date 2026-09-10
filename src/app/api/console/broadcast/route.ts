@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createUnsubscribeToken } from "@/lib/unsubscribe-token";
 
 /**
  * src/app/api/console/broadcast/route.ts
@@ -80,6 +81,14 @@ export async function POST(request: Request): Promise<NextResponse> {
   const unsubscribeBase = `${siteUrl}/unsubscribe`;
 
   for (const email of emails) {
+    const unsubscribeToken = createUnsubscribeToken(email);
+    if (!unsubscribeToken) {
+      return NextResponse.json(
+        { error: "Unsubscribe links are not configured" },
+        { status: 503 },
+      );
+    }
+
     try {
       await sendTemplatedEmail({
         to: email,
@@ -90,7 +99,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           summary,
           cta_url,
           cta_label,
-          unsubscribe_url: `${unsubscribeBase}?email=${encodeURIComponent(email)}`,
+          unsubscribe_url: `${unsubscribeBase}?email=${encodeURIComponent(email)}&token=${encodeURIComponent(unsubscribeToken)}`,
           support_email: "r.jordan@conqueror-studios.com",
         },
       });

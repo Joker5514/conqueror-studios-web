@@ -1,26 +1,33 @@
 import { NextResponse } from "next/server";
+import { isValidUnsubscribeToken } from "@/lib/unsubscribe-token";
 
 /**
  * src/app/api/unsubscribe/route.ts
  *
- * Public (no auth) unsubscribe endpoint.
- * Removes the given email from the waitlist table using the admin client.
+ * Public, signed unsubscribe endpoint. A token binds each request to the
+ * recipient address so an arbitrary caller cannot remove someone else.
  *
  * POST /api/unsubscribe
- * Body: { email: string }
+ * Body: { email: string, token: string }
  */
 
 export async function POST(request: Request): Promise<NextResponse> {
   let email: string | undefined;
+  let token: string | undefined;
   try {
-    const body = await request.json() as { email?: unknown };
+    const body = await request.json() as { email?: unknown; token?: unknown };
     email = typeof body.email === "string" ? body.email.trim().toLowerCase() : undefined;
+    token = typeof body.token === "string" ? body.token : undefined;
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  if (!email) {
-    return NextResponse.json({ error: "email is required" }, { status: 400 });
+  if (!email || !token) {
+    return NextResponse.json({ error: "email and token are required" }, { status: 400 });
+  }
+
+  if (!isValidUnsubscribeToken(email, token)) {
+    return NextResponse.json({ error: "Invalid unsubscribe link" }, { status: 403 });
   }
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {

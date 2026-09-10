@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function UnsubscribePage({
   searchParams,
 }: {
-  searchParams: Promise<{ email?: string }>;
+  searchParams: Promise<{ email?: string; token?: string }>;
 }) {
   return (
     <section className="relative overflow-hidden min-h-[60vh] flex items-center">

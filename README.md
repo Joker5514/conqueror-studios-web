@@ -93,6 +93,7 @@ Copy `.env.example` to `.env.local` and populate all values. See [docs/local-env
 | `SUPABASE_ANON_KEY` | recommended | Server-side anon key override |
 | `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Service-role key — server-only, never expose |
 | `NEXT_PUBLIC_SITE_URL` | ✅ | Canonical public URL for links in emails |
+| `UNSUBSCRIBE_TOKEN_SECRET` | ✅ | Server-only secret for signed unsubscribe links |
 | `POSTMARK_SERVER_TOKEN` | optional | Postmark API token for transactional email |
 | `POSTMARK_FROM_EMAIL` | optional | Verified sender address in Postmark |
 | `STRIPE_SECRET_KEY` | optional | Stripe secret key |
