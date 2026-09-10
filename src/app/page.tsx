@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight, GitBranch, Radio, ShieldCheck } from "lucide-react";
 import HudCorners from "@/components/site/HudCorners";
 import ProjectCard from "@/components/site/ProjectCard";
 import { flagshipProjects, inStudyProjects, repoCategories } from "@/lib/projects";
@@ -26,51 +27,42 @@ export default function HomePage() {
         <div className="absolute -left-60 -top-60 -z-10 h-[900px] w-[900px] rounded-full bg-[radial-gradient(circle,rgba(232,64,64,0.09)_0%,transparent_65%)]" />
         <div className="absolute -right-40 -top-20 -z-10 h-[700px] w-[700px] rounded-full bg-[radial-gradient(circle,rgba(0,102,255,0.07)_0%,transparent_65%)]" />
 
-        <div className="mx-auto max-w-7xl px-6 pt-16 pb-0 lg:pt-24">
+        <div className="mx-auto max-w-7xl px-5 pb-0 pt-14 sm:px-6 lg:pt-24">
           <div className="grid items-center gap-12 lg:grid-cols-2">
 
             {/* Left: Headline + CTAs */}
             <div className="flex flex-col gap-7">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="cs-eyebrow">[ Independent AI R&amp;D Lab ]</span>
+              <div className="flex flex-wrap items-center gap-2" aria-label="Company details">
+                <span className="cs-eyebrow">Independent AI R&amp;D Lab</span>
                 <span className="cs-chip">
                   <span className="status-dot" />
                   Mobile, Alabama
                 </span>
-                <span className="cs-chip">Founder · Randy Jordan</span>
               </div>
 
-              <div className="leading-[0.92]">
-                <h1 className="font-orbitron text-[clamp(2.8rem,7.5vw,5.5rem)] font-black uppercase tracking-tight text-white">
-                  CONQUER
-                </h1>
-                <h1 className="font-orbitron text-[clamp(2.8rem,7.5vw,5.5rem)] font-black uppercase tracking-tight text-[#e84040]">
-                  THE SYSTEM
-                </h1>
-              </div>
+              <h1 className="max-w-3xl font-orbitron text-[clamp(2.65rem,6.8vw,5.25rem)] font-black uppercase leading-[0.95] tracking-[-0.04em] text-white">
+                Build AI agents
+                <br />
+                <span className="text-[#ff5555]">you can trust.</span>
+              </h1>
 
-              <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-white/35">
-                ── Build. Orchestrate. Ship. ──
-              </p>
-
-              <p className="max-w-lg text-[17px] leading-relaxed text-white/58">
-                Conqueror Studios is a multi-tenant AI agent platform. We design
-                instrumented multi-agent systems, voice-first UX, and federated
-                architectures — built around determinism, transparency, and
-                Git-native workflows.
+              <p className="max-w-xl text-[17px] leading-7 text-white/65 sm:text-lg">
+                Design, run, and inspect multi-agent workflows from one Git-native
+                platform—with every decision traced, every change reviewable, and
+                voice built in from the start.
               </p>
 
               <div className="flex flex-wrap items-center gap-4">
-                <Link href="/projects" className="cs-btn-deploy">
-                  DEPLOY AGENT →
+                <Link href="/waitlist" className="cs-btn-deploy">
+                  Request early access <ArrowRight size={15} aria-hidden="true" />
                 </Link>
-                <Link href="/aibridge" className="cs-btn-outline">
-                  VIEW AI BRIDGE
-                </Link>
-                <Link href="/waitlist" className="cs-link-arrow ml-1">
-                  JOIN WAITLIST →
+                <Link href="/projects" className="cs-btn-outline">
+                  Explore products
                 </Link>
               </div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/35">
+                Built for AI teams · Founder-led onboarding · No credit card
+              </p>
             </div>
 
             {/* Right: Logo */}
@@ -82,29 +74,34 @@ export default function HomePage() {
                   src="/assets/conqueror-logo.png"
                   alt="Conqueror Studios"
                   className="w-full drop-shadow-[0_0_50px_rgba(0,102,255,0.25)]"
+                  width="768"
+                  height="768"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stats bar */}
+        {/* Capability bar */}
         <div className="mx-auto mt-10 max-w-7xl px-6 pb-16">
           <div className="relative">
             <HudCorners color="#e84040" size={10} opacity={0.6} />
             <div className="grid grid-cols-2 gap-px border border-[#e84040]/18 bg-[#e84040]/8 sm:grid-cols-4">
               {[
-                { k: "FLAGSHIP PRODUCTS", v: "04" },
-                { k: "REPOSITORIES", v: "12+" },
-                { k: "MODALITIES", v: "TEXT · VOICE · VISION" },
-                { k: "CURRENT STATUS", v: "PRE-LAUNCH" },
+                { k: "REVIEWABLE", v: "Git-native workflows", icon: GitBranch },
+                { k: "OBSERVABLE", v: "End-to-end traces", icon: Radio },
+                { k: "CONTROLLED", v: "Human approvals", icon: ShieldCheck },
+                { k: "MULTIMODAL", v: "Text · voice · vision", icon: ArrowRight },
               ].map((s) => (
-                <div key={s.k} className="bg-[#07070a] p-5">
-                  <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-[#e84040]/65">
-                    {s.k}
-                  </div>
-                  <div className="mt-2 font-mono text-lg font-bold tracking-tight text-white">
-                    {s.v}
+                <div key={s.k} className="flex min-h-24 items-center gap-3 bg-[#07070a] p-5">
+                  <s.icon size={18} className="shrink-0 text-[#ff5555]" aria-hidden="true" />
+                  <div>
+                    <div className="font-mono text-[9px] uppercase tracking-[0.22em] text-[#ff6868]">
+                      {s.k}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold tracking-tight text-white/85">
+                      {s.v}
+                    </div>
                   </div>
                 </div>
               ))}

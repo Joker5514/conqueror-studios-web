@@ -48,6 +48,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body className="min-h-screen antialiased">
+        <a href="#main-content" className="skip-link">Skip to main content</a>
         {isPreviewEnvironment ? (
           <Script
             src="https://app.cofounder.co/agentation/widget.js"
@@ -57,7 +58,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1">{children}</main>
             <SiteFooter />
           </div>
         </Providers>

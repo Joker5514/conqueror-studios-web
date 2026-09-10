@@ -6,13 +6,10 @@ import { useState } from "react";
 import { useMountEffect } from "@/hooks/useMountEffect";
 
 const navLinks = [
-  { href: "/projects", label: "Projects" },
+  { href: "/projects", label: "Products" },
   { href: "/agents", label: "Agents" },
-  { href: "/orchestrai", label: "Nexus" },
-  { href: "/aibridge", label: "AI Bridge" },
   { href: "/studio", label: "Studio" },
   { href: "/support", label: "Support" },
-  { href: "/console", label: "Console" },
 ];
 
 export default function SiteHeader() {
@@ -41,7 +38,7 @@ export default function SiteHeader() {
           : "border-b border-transparent"
       }`}
     >
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-6">
         <Link
           href="/"
           className="group flex items-center"
@@ -51,7 +48,7 @@ export default function SiteHeader() {
           <img
             src="/assets/conqueror-logo.png"
             alt="Conqueror Studios"
-            className="h-10 w-auto"
+            className="h-11 w-auto"
           />
         </Link>
 
@@ -85,8 +82,11 @@ export default function SiteHeader() {
           >
             GitHub
           </Link>
-          <Link href="/waitlist" className="cs-btn-deploy py-2.5 px-5 text-[10px]">
-            DEPLOY AGENT →
+          <Link href="/auth" className="font-mono text-[11px] uppercase tracking-[0.14em] text-white/55 transition-colors hover:text-white">
+            Sign in
+          </Link>
+          <Link href="/waitlist" className="cs-btn-deploy px-5 py-2.5 text-[10px]">
+            Request access
           </Link>
         </div>
 
@@ -94,7 +94,7 @@ export default function SiteHeader() {
           type="button"
           onClick={() => setOpen((v) => !v)}
           className="md:hidden flex h-9 w-9 items-center justify-center border border-[#e84040]/20 text-white/80 bg-[#0a0a10]"
-          aria-label="Toggle menu"
+          aria-label={open ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={open}
         >
           <span className="relative block h-3 w-4">
@@ -129,11 +129,14 @@ export default function SiteHeader() {
                 {link.label}
               </Link>
             ))}
+            <Link href="/auth" className="font-mono px-2 py-2.5 text-[11px] uppercase tracking-[0.14em] text-white/70">
+              Sign in
+            </Link>
             <Link
               href="/waitlist"
               className="cs-btn-deploy mt-3 justify-center"
             >
-              DEPLOY AGENT →
+              Request access
             </Link>
           </nav>
         </div>
