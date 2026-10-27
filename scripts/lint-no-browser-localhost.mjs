@@ -27,7 +27,9 @@ function isIgnoredPath(filePath) {
     normalized.endsWith("/src/proxy.ts") ||
     normalized.endsWith("/src/lib/supabase/proxy.ts") ||
     normalized.endsWith("/src/lib/supabase/server.ts") ||
-    normalized.endsWith("/src/lib/supabase/server-env.ts")
+    normalized.endsWith("/src/lib/supabase/server-env.ts") ||
+    // Loopback hostname check for server-side upstream URLs. Not imported by client components.
+    normalized.endsWith("/src/lib/server-url.ts")
   );
 }
 
