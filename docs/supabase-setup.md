@@ -161,8 +161,8 @@ supabase stop
 
 1. In the Supabase dashboard → **Authentication** → **Providers**, enable **Email** (magic link, no password).
 2. Under **URL Configuration**, set:
-   - **Site URL**: `https://conquerorstudios.dev` (production) or `http://localhost:3000` (dev)
-   - **Redirect URLs**: add `https://conquerorstudios.dev/auth/callback` and `http://localhost:3000/auth/callback`
+   - **Site URL**: `https://www.conqueror-studios.com` (production) or `http://localhost:3000` (dev)
+   - **Redirect URLs**: add `https://www.conqueror-studios.com/auth/callback` and `http://localhost:3000/auth/callback`
 3. Under **Email Templates** → **Magic Link**, customize the subject and body to match the Conqueror Studios branding.
 
 The PKCE exchange is handled by [`src/app/auth/callback/route.ts`](../src/app/auth/callback/route.ts).

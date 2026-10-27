@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = "https://conquerorstudios.dev";
+const BASE_URL = "https://www.conqueror-studios.com";
 
 const publicRoutes: { url: string; priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
   { url: "/", priority: 1.0, changeFrequency: "weekly" },

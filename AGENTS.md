@@ -23,9 +23,13 @@
 
 - `src/app/console/**` routes are protected. Every `layout.tsx` in this subtree must perform a
   server-side Supabase session check and redirect unauthenticated visitors to `/auth`.
-- `src/app/api/nexus/route.ts` is the **only** place the `NEXUS_URL` env var is used.
-  UI components call `/api/nexus` — never the Nexus service directly.
-- `src/app/api/nexus/schema/route.ts` is the **only** place the `BRIDGE_URL` env var is used.
+- `CONSOLE_OWNER_EMAILS` is required. `decideConsoleOwner()` fails closed when it is empty.
+  Console pages, agent APIs, waitlist admin, broadcast, settings, `/api/nexus`, and
+  `/api/nexus/schema` all use that gate. Do not treat any signed-in user as an owner.
+- `src/lib/nexus-client.ts` is the **only** place the `NEXUS_URL` env var is read.
+  UI components call `/api/nexus` or `/api/agents/[id]/run` — never the Nexus service directly.
+- `src/lib/bridge-client.ts` is the **only** place the `BRIDGE_URL` env var is read.
+  It calls AI Bridge v2 `GET /tools/schema`. It does not call the Drive/GitHub `ai-bridge` repo.
 - `src/app/api/console/waitlist/route.ts` is the console admin data endpoint. Auth-gated; reads
   via service-role client to bypass RLS.
 - Trace data from Nexus is displayed read-only. The console never mutates Nexus or Bridge state.
@@ -36,8 +40,7 @@
 
 - `/auth` — magic-link sign-in page (`src/app/auth/page.tsx` + `AuthForm.tsx`).
 - `/auth/callback` — Supabase PKCE exchange route (`src/app/auth/callback/route.ts`).
-- `middleware.ts` — runs `updateSession()` on every request to refresh auth cookies.
-  Excludes `/api/health` and `/api/stripe/webhook` from session overhead.
+- `src/proxy.ts` — Next.js 16 request proxy (the former middleware entry). Runs `updateSession()` on matched requests to refresh auth cookies. Excludes `/api/health` and `/api/stripe/webhook`.
 
 ## API Routes (Phase 1)
 
@@ -49,6 +52,8 @@
 
 ## Service Integration Rules
 
-- `NEXUS_URL` — env var pointing to orchestrai-nexus. Used only in `src/app/api/nexus/route.ts`.
-- `BRIDGE_URL` — env var pointing to ai_bridge. Used only in `src/app/api/nexus/schema/route.ts`.
+- `NEXUS_URL` — env var pointing to orchestrai-nexus. Read only in `src/lib/nexus-client.ts`.
+- `BRIDGE_URL` — env var pointing to AI Bridge v2. Read only in `src/lib/bridge-client.ts`.
+- `NEXUS_SHARED_SECRET` and `BRIDGE_SHARED_SECRET` — optional server-only credentials
+  attached to upstream requests when set. They are not a substitute for upstream enforcement.
 - Both vars must be set in Vercel environment settings. They are never exposed to the browser bundle.

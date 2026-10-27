@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { consoleOwnerRedirectPath } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./SignOutButton";
 import ConsoleTabs from "./ConsoleTabs";
@@ -9,19 +10,12 @@ import ConsoleTabs from "./ConsoleTabs";
  *
  * Server-component auth guard for every route under /console.
  * Unauthenticated visitors are redirected to /auth.
- * Optional CONSOLE_OWNER_EMAILS (comma-separated) restricts access further.
+ * CONSOLE_OWNER_EMAILS is required. A missing allowlist fails closed.
  *
  * Architecture rule (AGENTS.md):
  *   "Every layout.tsx in this subtree must perform a server-side
  *    Supabase session check and redirect unauthenticated visitors."
  */
-function isOwnerEmail(email: string | undefined): boolean {
-  const raw = process.env.CONSOLE_OWNER_EMAILS?.trim();
-  if (!raw) return true; // no allowlist configured — any authenticated user
-  if (!email) return false;
-  const allowed = raw.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
-  return allowed.includes(email.toLowerCase());
-}
 
 export default async function ConsoleLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
@@ -33,9 +27,8 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
     redirect("/auth");
   }
 
-  if (!isOwnerEmail(user.email)) {
-    redirect("/auth?error=unauthorized");
-  }
+  const ownerRedirect = consoleOwnerRedirectPath(user.email);
+  if (ownerRedirect) redirect(ownerRedirect);
 
   return (
     <div className="min-h-screen">

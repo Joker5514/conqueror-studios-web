@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { configuredSiteOrigin } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -37,9 +38,7 @@ export default async function BillingPage() {
   // ── 3. Redirect to portal if subscription exists ────────────────────────────
   if (hasActiveSubscription) {
     // Call the portal API server-side to get the redirect URL
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ??
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://conquerorstudios.dev");
+    const siteUrl = configuredSiteOrigin();
 
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     const customerId = subscription?.stripe_customer_id;

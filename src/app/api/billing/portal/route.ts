@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { configuredSiteOrigin } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -18,7 +19,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(_req: NextRequest): Promise<NextResponse> {
   // ── 1. Auth guard ──────────────────────────────────────────────────────────
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -54,11 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // ── 4. Return URL ──────────────────────────────────────────────────────────
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    req.headers.get("origin") ??
-    "https://conquerorstudios.dev";
-  const returnUrl = `${origin}/billing`;
+  const returnUrl = `${configuredSiteOrigin()}/billing`;
 
   // ── 5. Create portal session ───────────────────────────────────────────────
   const session = await stripe.billingPortal.sessions.create({

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { isHttpsUrl } from "@/lib/broadcast-url";
+import { requireConsoleOwner } from "@/lib/console-owner";
+import { rateLimit } from "@/lib/rateLimit";
+import { configuredSiteOrigin } from "@/lib/site-url";
 import { createUnsubscribeToken } from "@/lib/unsubscribe-token";
 
 /**
@@ -20,17 +23,13 @@ export interface BroadcastBody {
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
-  // ── Auth guard ──────────────────────────────────────────────────────────────
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
+  const { user } = access;
 
-  const ownerEmails = process.env.CONSOLE_OWNER_EMAILS?.trim();
-  if (ownerEmails) {
-    const allowed = ownerEmails.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
-    if (!user.email || !allowed.includes(user.email.toLowerCase())) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+  const limit = rateLimit(`broadcast:${user.id}`, { windowMs: 60 * 60_000, max: 3 });
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Too many broadcasts", code: "rate_limited" }, { status: 429 });
   }
   // ── Parse body ──────────────────────────────────────────────────────────────
   let body: Partial<BroadcastBody>;
@@ -46,6 +45,12 @@ export async function POST(request: Request): Promise<NextResponse> {
       { error: "headline, summary, cta_url, and cta_label are required" },
       { status: 400 },
     );
+  }
+  if (headline.trim().length > 200 || summary.trim().length > 5000 || cta_label.trim().length > 80) {
+    return NextResponse.json({ error: "Broadcast fields are too long" }, { status: 400 });
+  }
+  if (!isHttpsUrl(cta_url)) {
+    return NextResponse.json({ error: "cta_url must be an https URL" }, { status: 400 });
   }
 
   // ── Fetch recipient emails via admin client ─────────────────────────────────
@@ -75,9 +80,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   let sent = 0;
   const failures: string[] = [];
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://conquerorstudios.dev");
+  const siteUrl = configuredSiteOrigin();
   const unsubscribeBase = `${siteUrl}/unsubscribe`;
 
   for (const email of emails) {
@@ -105,7 +108,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       });
       sent++;
     } catch (err) {
-      console.error(`[broadcast] failed for ${email}`, err);
+      console.error("[broadcast] send failed", err instanceof Error ? err.message : "unknown");
       failures.push(email);
     }
   }

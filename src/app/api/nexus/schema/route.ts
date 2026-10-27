@@ -1,28 +1,25 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getBridgeToolSchema } from "@/lib/bridge-client";
+import { requireConsoleOwner } from "@/lib/console-owner";
 
 /**
  * src/app/api/nexus/schema/route.ts
  *
- * Proxies GET /tools/schema from ai_bridge.
- * Used by the console tool registry table via useNexusSchema().
+ * Owner-gated proxy for AI Bridge GET /tools/schema.
+ * BRIDGE_URL is read only by src/lib/bridge-client.ts.
  */
 
-const BRIDGE_URL = process.env.BRIDGE_URL ?? "http://localhost:8001";
-
 export async function GET(_req: NextRequest): Promise<NextResponse> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
 
-  try {
-    const res = await fetch(`${BRIDGE_URL}/tools/schema`);
-    const data: unknown = await res.json();
-    return NextResponse.json(data, { status: res.status });
-  } catch (err) {
+  const result = await getBridgeToolSchema();
+  if (!result.ok) {
     return NextResponse.json(
-      { error: "AI Bridge unreachable", detail: String(err) },
-      { status: 502 },
+      { error: result.error, code: result.code },
+      { status: result.status },
     );
   }
+
+  return NextResponse.json(result.data, { status: result.status });
 }

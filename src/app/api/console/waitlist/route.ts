@@ -1,12 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireConsoleOwner } from "@/lib/console-owner";
 
 /**
  * src/app/api/console/waitlist/route.ts
  *
  * Returns waitlist signups for the owner console.
- * Auth-gated: requires an active Supabase session.
- * When CONSOLE_OWNER_EMAILS is set, only those emails may read the list.
+ * Auth-gated: requires an owner session. CONSOLE_OWNER_EMAILS is required.
  * Reads via the service-role client to bypass RLS.
  *
  * GET /api/console/waitlist?limit=100&offset=0
@@ -26,14 +25,6 @@ export interface WaitlistRow {
 const DEFAULT_LIMIT = 100;
 const MAX_LIMIT = 500;
 
-function isOwnerEmail(email: string | undefined): boolean {
-  const raw = process.env.CONSOLE_OWNER_EMAILS?.trim();
-  if (!raw) return true;
-  if (!email) return false;
-  const allowed = raw.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
-  return allowed.includes(email.toLowerCase());
-}
-
 function parsePositiveInt(value: string | null, fallback: number, max: number): number {
   if (value === null || value === "") return fallback;
   const n = Number(value);
@@ -42,16 +33,8 @@ function parsePositiveInt(value: string | null, fallback: number, max: number): 
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!isOwnerEmail(user.email)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
 
   const { searchParams } = req.nextUrl;
   const limit = parsePositiveInt(searchParams.get("limit"), DEFAULT_LIMIT, MAX_LIMIT);

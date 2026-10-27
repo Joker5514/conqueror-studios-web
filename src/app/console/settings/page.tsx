@@ -28,7 +28,7 @@ export default function ConsoleSettingsPage() {
 
   const [headline, setHeadline] = useState("");
   const [summary, setSummary] = useState("");
-  const [ctaUrl, setCtaUrl] = useState("https://conquerorstudios.dev/projects");
+  const [ctaUrl, setCtaUrl] = useState("https://www.conqueror-studios.com/projects");
   const [ctaLabel, setCtaLabel] = useState("Explore the lab");
 
   function handleBroadcast(e: import("react").FormEvent) {

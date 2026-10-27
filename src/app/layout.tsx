@@ -4,21 +4,22 @@ import type { ReactNode } from "react";
 import Providers from "@/components/Providers";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
+import { CANONICAL_SITE_ORIGIN } from "@/lib/site-url";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://conquerorstudios.dev"),
+  metadataBase: new URL(CANONICAL_SITE_ORIGIN),
   title: {
     default: "Conqueror Studios — Git-native AI agent platform",
     template: "%s · Conqueror Studios",
   },
   description:
-    "Conqueror Studios is a Git-native, multi-tenant AI agent platform. We build instrumented multi-agent systems, federated agentic architectures, and voice-first interfaces.",
+    "Conqueror Studios builds instrumented agent workflows, voice-first interfaces, and the studio control plane.",
   openGraph: {
     title: "Conqueror Studios — Git-native AI agent platform",
     description:
       "Independent AI R&D. Multi-agent orchestration, voice-first interfaces, federated agentic architectures.",
-    url: "https://conquerorstudios.dev",
+    url: CANONICAL_SITE_ORIGIN,
     siteName: "Conqueror Studios",
     type: "website",
   },

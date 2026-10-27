@@ -1,4 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { requireConsoleOwner } from "@/lib/console-owner";
+import { postNexusRun } from "@/lib/nexus-client";
+import { rateLimit } from "@/lib/rateLimit";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AgentRow, AgentRunRow } from "@/lib/agents/types";
@@ -9,33 +12,32 @@ import type { AgentRow, AgentRunRow } from "@/lib/agents/types";
  * POST /api/agents/[id]/run
  *
  * Flow:
- *   1. Auth guard + ownership check
- *   2. Load agent definition from DB
- *   3. Call OrchestrAI Nexus /run server-side (NEXUS_URL — never exposed to browser)
- *   4a. If Nexus responds with text/event-stream or Transfer-Encoding: chunked,
- *       stream tokens back to the client as SSE (text/event-stream).
- *       The final "[DONE]" event carries the persisted run row as JSON.
- *   4b. Otherwise, fall back to the existing buffered JSON response.
- *   5. Persist result to agent_runs via admin client either way.
+ *   1. Owner allowlist + session
+ *   2. Load the caller-owned agent definition
+ *   3. Call OrchestrAI Nexus /run through the server-side client
+ *   4. Persist the buffered JSON result to agent_runs
  *
- * Architecture rules (AGENTS.md):
- *   - NEXUS_URL must only be used in this file and /api/nexus/route.ts
- *   - Never proxy NEXUS_URL to the browser bundle
+ * The website consumes the JSON /run contract. Chunked transfer encoding
+ * is not treated as a token stream.
  */
 
-const NEXUS_URL = process.env.NEXUS_URL ?? "http://localhost:8000";
+const MAX_INPUT_CHARS = 16_000;
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse | Response> {
+export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
 
-  // ── 1. Auth guard ────────────────────────────────────────────────────────────
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
+  const { user } = access;
 
-  // ── 2. Load agent + ownership check ─────────────────────────────────────────
+  const limit = rateLimit(`agent-run:${user.id}`, { windowMs: 60_000, max: 10 });
+  if (!limit.ok) {
+    return NextResponse.json({ error: "Too many requests", code: "rate_limited" }, { status: 429 });
+  }
+
+  const supabase = await createClient();
   const { data: agent, error: agentErr } = await supabase
     .from("agents")
     .select("*")
@@ -49,7 +51,6 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse | R
 
   const agentRow = agent as AgentRow;
 
-  // ── 3. Parse run input ───────────────────────────────────────────────────────
   let body: { input?: string };
   try {
     body = await req.json() as { input?: string };
@@ -57,22 +58,25 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse | R
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  if (!body.input?.trim()) {
+  const input = body.input?.trim() ?? "";
+  if (!input) {
     return NextResponse.json({ error: "input is required" }, { status: 400 });
+  }
+  if (input.length > MAX_INPUT_CHARS) {
+    return NextResponse.json({ error: "input is too long" }, { status: 400 });
   }
 
   const correlationId = crypto.randomUUID();
-  const startedAt     = Date.now();
+  const startedAt = Date.now();
 
-  // ── 4. Insert a `running` run row early so we have an ID ───────────────────
   const admin = createAdminClient();
   const { data: runRow, error: insertErr } = await admin
     .from("agent_runs")
     .insert({
-      agent_id:       id,
-      user_id:        user.id,
-      input:          body.input.trim(),
-      status:         "running",
+      agent_id: id,
+      user_id: user.id,
+      input,
+      status: "running",
       correlation_id: correlationId,
     })
     .select()
@@ -84,131 +88,54 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse | R
   }
 
   const run = runRow as AgentRunRow;
-
-  // ── 5. Call Nexus ────────────────────────────────────────────────────────────
-  const nexusPayload = JSON.stringify({
-    user_id:        user.id,
-    query:          body.input.trim(),
+  const result = await postNexusRun({
+    user_id: user.id,
+    query: input,
     correlation_id: correlationId,
     context: {
-      agent_id:      agentRow.id,
-      agent_name:    agentRow.name,
+      agent_id: agentRow.id,
+      agent_name: agentRow.name,
       system_prompt: agentRow.system_prompt,
-      model:         agentRow.model,
+      model: agentRow.model,
       allowed_tools: agentRow.tools.length > 0 ? agentRow.tools : null,
     },
   });
 
-  let nexusRes: globalThis.Response;
-  try {
-    nexusRes = await fetch(`${NEXUS_URL}/run`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: nexusPayload,
-    });
-  } catch (err) {
-    // Nexus unreachable
+  const latencyMs = Date.now() - startedAt;
+
+  if (!result.ok) {
     await admin
       .from("agent_runs")
-      .update({ status: "error", error: String(err) })
+      .update({
+        status: "error",
+        error: result.error,
+        latency_ms: latencyMs,
+      })
       .eq("id", run.id);
     return NextResponse.json(
-      { error: "Nexus service unreachable", detail: String(err), run_id: run.id },
-      { status: 502 },
+      { error: result.error, code: result.code, run_id: run.id },
+      { status: result.status },
     );
   }
 
-  // ── 6a. Streaming path ───────────────────────────────────────────────────────
-  const contentType  = nexusRes.headers.get("content-type") ?? "";
-  const isStreaming  =
-    contentType.includes("text/event-stream") ||
-    (nexusRes.headers.get("transfer-encoding") ?? "").toLowerCase().includes("chunked");
-
-  if (isStreaming && nexusRes.body) {
-    const readable = nexusRes.body;
-    const textDecoder = new TextDecoder();
-    let accumulated = "";
-
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = readable.getReader();
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = textDecoder.decode(value, { stream: true });
-            accumulated += chunk;
-            // Forward raw SSE lines (or plain text) to the client
-            controller.enqueue(new TextEncoder().encode(chunk));
-          }
-        } catch (err) {
-          controller.enqueue(
-            new TextEncoder().encode(`data: [ERROR] ${String(err)}\n\n`),
-          );
-        } finally {
-          // Persist the full accumulated text as the run output
-          const latencyMs = Date.now() - startedAt;
-          await admin
-            .from("agent_runs")
-            .update({
-              output:     accumulated,
-              latency_ms: latencyMs,
-              status:     nexusRes.ok ? "done" : "error",
-              error:      nexusRes.ok ? null : "Nexus stream error",
-            })
-            .eq("id", run.id);
-
-          // Send a final [DONE] event with the run metadata
-          const finalRun: AgentRunRow = {
-            ...run,
-            output:     accumulated,
-            latency_ms: latencyMs,
-            status:     nexusRes.ok ? "done" : "error",
-          };
-          controller.enqueue(
-            new TextEncoder().encode(
-              `data: [DONE] ${JSON.stringify({ run: finalRun })}\n\n`,
-            ),
-          );
-          controller.close();
-          reader.releaseLock();
-        }
-      },
-    });
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type":  "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection":    "keep-alive",
-      },
-    });
-  }
-
-  // ── 6b. Buffered (non-streaming) path — identical to original ───────────────
-  let nexusData: Record<string, unknown>;
-  try {
-    const raw: unknown = await nexusRes.json().catch(() => ({}));
-    nexusData = raw as Record<string, unknown>;
-  } catch {
-    nexusData = {};
-  }
-
-  const latencyMs = Date.now() - startedAt;
-  const trace     = (nexusData.trace ?? null) as Record<string, unknown> | null;
-  const result    = nexusData.result as Record<string, unknown> | undefined;
-  const answer    = typeof result?.answer === "string" ? result.answer : null;
-  const mode      = typeof nexusData.routing_mode === "string" ? nexusData.routing_mode : null;
+  const nexusData = (result.data && typeof result.data === "object" && !Array.isArray(result.data)
+    ? result.data
+    : {}) as Record<string, unknown>;
+  const trace = (nexusData.trace ?? null) as Record<string, unknown> | null;
+  const nexusResult = nexusData.result as Record<string, unknown> | undefined;
+  const answer = typeof nexusResult?.answer === "string" ? nexusResult.answer : null;
+  const mode = typeof nexusData.routing_mode === "string" ? nexusData.routing_mode : null;
+  const upstreamOk = result.status >= 200 && result.status < 300;
 
   const { data: updatedRun, error: updateErr } = await admin
     .from("agent_runs")
     .update({
-      output:       answer ?? JSON.stringify(result ?? nexusData),
+      output: answer ?? JSON.stringify(nexusResult ?? nexusData),
       routing_mode: mode,
-      latency_ms:   latencyMs,
-      trace:        trace,
-      status:       nexusRes.ok ? "done" : "error",
-      error:        nexusRes.ok ? null : String(nexusData.error ?? "Nexus error"),
+      latency_ms: latencyMs,
+      trace,
+      status: upstreamOk ? "done" : "error",
+      error: upstreamOk ? null : "Nexus error",
     })
     .eq("id", run.id)
     .select()
@@ -217,7 +144,7 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse | R
   if (updateErr) console.error("[agent/run] update error", updateErr);
 
   return NextResponse.json({
-    run:    (updatedRun ?? run) as AgentRunRow,
+    run: (updatedRun ?? run) as AgentRunRow,
     result: nexusData,
-  }, { status: nexusRes.ok ? 200 : 502 });
+  }, { status: upstreamOk ? 200 : 502 });
 }

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { configuredSiteOrigin } from "@/lib/site-url";
+import { finalizeWebhookHttp } from "@/lib/stripe-webhook-result";
 
 /**
  * src/app/api/stripe/webhook/route.ts
@@ -18,8 +20,11 @@ const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 
-async function upsertSubscription(sub: Stripe.Subscription): Promise<void> {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+async function upsertSubscription(sub: Stripe.Subscription): Promise<boolean> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error("[stripe] subscription persistence is not configured");
+    return false;
+  }
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const admin = createAdminClient();
 
@@ -37,7 +42,7 @@ async function upsertSubscription(sub: Stripe.Subscription): Promise<void> {
     item?.price?.id ??
     null;
 
-  await admin.from("subscriptions").upsert(
+  const { error } = await admin.from("subscriptions").upsert(
     {
       stripe_customer_id: customer,
       stripe_subscription_id: sub.id,
@@ -54,6 +59,11 @@ async function upsertSubscription(sub: Stripe.Subscription): Promise<void> {
     },
     { onConflict: "stripe_subscription_id" },
   );
+  if (error) {
+    console.error("[stripe] upsert failed", error);
+    return false;
+  }
+  return true;
 }
 
 export async function POST(request: Request) {
@@ -77,12 +87,11 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(payload, signature, stripeWebhookSecret);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid Stripe webhook signature.";
-    return NextResponse.json({ error: message }, { status: 400 });
+  } catch {
+    return NextResponse.json({ error: "Invalid Stripe webhook signature." }, { status: 400 });
   }
 
-  // ── Event dispatch ──────────────────────────────────────────────────────────
+  let persistenceFailed = false;
 
   switch (event.type) {
     case "checkout.session.completed": {
@@ -96,9 +105,10 @@ export async function POST(request: Request) {
               ? session.subscription
               : session.subscription.id,
           );
-          await upsertSubscription(sub);
+          if (!(await upsertSubscription(sub))) persistenceFailed = true;
         } catch (err) {
           console.error("[stripe] failed to retrieve/upsert subscription", err);
+          persistenceFailed = true;
         }
       }
       break;
@@ -108,19 +118,14 @@ export async function POST(request: Request) {
     case "customer.subscription.updated": {
       const subscription = event.data.object;
       console.log(`[stripe] ${event.type}`, subscription.id, subscription.status);
-      await upsertSubscription(subscription).catch((err) =>
-        console.error("[stripe] upsert failed", err),
-      );
+      if (!(await upsertSubscription(subscription))) persistenceFailed = true;
       break;
     }
 
     case "customer.subscription.deleted": {
       const subscription = event.data.object;
       console.log("[stripe] customer.subscription.deleted", subscription.id);
-      // Mark cancelled — preserve the row for audit.
-      await upsertSubscription(subscription).catch((err) =>
-        console.error("[stripe] upsert on delete failed", err),
-      );
+      if (!(await upsertSubscription(subscription))) persistenceFailed = true;
       break;
     }
 
@@ -143,9 +148,7 @@ export async function POST(request: Request) {
           : null;
       if (customerEmail && process.env.POSTMARK_SERVER_TOKEN) {
         const { sendTemplatedEmail } = await import("@/lib/postmark/send");
-        const siteUrl =
-          process.env.NEXT_PUBLIC_SITE_URL ??
-          (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://conquerorstudios.dev");
+        const siteUrl = configuredSiteOrigin();
         const amountDue =
           typeof invoice.amount_due === "number"
             ? `$${(invoice.amount_due / 100).toFixed(2)}`
@@ -170,5 +173,6 @@ export async function POST(request: Request) {
       break;
   }
 
-  return NextResponse.json({ received: true });
+  const http = finalizeWebhookHttp(persistenceFailed);
+  return NextResponse.json(http.body, { status: http.status });
 }

@@ -2,10 +2,10 @@
 
 import { headers } from "next/headers";
 import { sendTemplatedEmail } from "@/lib/postmark/send";
+import { configuredSiteOrigin } from "@/lib/site-url";
 import { tryGetSupabaseServerEnv } from "@/lib/supabase/server-env";
+import { normalizeWaitlistInput } from "@/lib/waitlist-input";
 import { rateLimit } from "@/lib/rateLimit";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type WaitlistSignupResult =
   | { ok: true }
@@ -36,44 +36,43 @@ export async function signUpForWaitlist(
   if (typeof rawEmail !== "string") {
     return { ok: false, error: "Email is required." };
   }
-  const email = rawEmail.trim().toLowerCase();
-  if (!EMAIL_PATTERN.test(email)) {
-    return { ok: false, error: "That doesn't look like a valid email." };
-  }
 
-  const name = ((formData.get("name") as string | null) ?? "").trim();
-  const org = ((formData.get("org") as string | null) ?? "").trim();
-  const interests = formData.getAll("interest") as string[];
-  const message = ((formData.get("message") as string | null) ?? "").trim();
+  const normalized = normalizeWaitlistInput({
+    email: rawEmail,
+    name: ((formData.get("name") as string | null) ?? ""),
+    org: ((formData.get("org") as string | null) ?? ""),
+    interests: formData.getAll("interest").filter((item): item is string => typeof item === "string"),
+    message: ((formData.get("message") as string | null) ?? ""),
+  });
+  if (!normalized.ok) return normalized;
 
-  // Persist to Supabase when fully configured. Guard on the service-role key
-  // explicitly — tryGetSupabaseServerEnv() returns truthy even when only the
-  // anon key is present, but createAdminClient() requires the service-role key
-  // and will throw without it.
+  const { email, name, org, interests, message } = normalized.value;
+
+  // Do not report success when the row cannot be stored.
   const serverEnv = tryGetSupabaseServerEnv();
   const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
-  if (serverEnv && hasServiceKey) {
-    try {
-      const { createAdminClient } = await import("@/lib/supabase/admin");
-      const supabase = createAdminClient();
-      const { error } = await supabase.from("waitlist").upsert(
-        {
-          email,
-          name: name || null,
-          org: org || null,
-          interests: interests.length ? interests : null,
-          message: message || null,
-        },
-        { onConflict: "email" },
-      );
-      if (error) {
-        console.error("Waitlist upsert failed", error);
-        return { ok: false, error: "Failed to save your signup. Please try again." };
-      }
-    } catch (err) {
-      console.error("Waitlist Supabase error", err);
-      return { ok: false, error: "A server error occurred. Please try again." };
+  if (!serverEnv || !hasServiceKey) {
+    return { ok: false, error: "Waitlist storage is not configured." };
+  }
+
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const supabase = createAdminClient();
+    const { error } = await supabase.from("waitlist").insert({
+      email,
+      name,
+      org,
+      interests,
+      message,
+    });
+    if (error) {
+      if (error.code === "23505") return { ok: true };
+      console.error("Waitlist insert failed", error);
+      return { ok: false, error: "Failed to save your signup. Please try again." };
     }
+  } catch (err) {
+    console.error("Waitlist Supabase error", err);
+    return { ok: false, error: "A server error occurred. Please try again." };
   }
 
   // Send confirmation email when Postmark is configured. A missing or
@@ -88,7 +87,7 @@ export async function signUpForWaitlist(
         first_name: name || email.split("@")[0],
         next_step:
           "We'll be in touch when the next cohort opens. In the meantime, the lab posts updates on GitHub.",
-        cta_url: "https://conquerorstudios.dev/projects",
+        cta_url: `${configuredSiteOrigin()}/projects`,
         cta_label: "Explore the lab",
         support_email: "r.jordan@conqueror-studios.com",
       },

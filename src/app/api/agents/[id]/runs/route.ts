@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRunRow } from "@/lib/agents/types";
 
@@ -12,9 +13,10 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
+  const { user } = access;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Verify ownership by joining through agents RLS
   const { data: agent } = await supabase

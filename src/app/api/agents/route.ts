@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRow } from "@/lib/agents/types";
 
@@ -12,9 +13,10 @@ import type { AgentRow } from "@/lib/agents/types";
 // ── GET — list ────────────────────────────────────────────────────────────────
 
 export async function GET(): Promise<NextResponse> {
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
+  const { user } = access;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await supabase
     .from("agents")
@@ -41,9 +43,10 @@ interface CreateAgentBody {
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
+  const { user } = access;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let body: Partial<CreateAgentBody>;
   try {
