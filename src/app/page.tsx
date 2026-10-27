@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: "Conqueror Studios — Git-native AI agent platform",
     description:
       "Independent AI R&D lab building multi-agent orchestration, voice-first interfaces, and federated agentic architectures.",
-    url: "https://conquerorstudios.dev",
+    url: "https://www.conqueror-studios.com",
   },
 };
 

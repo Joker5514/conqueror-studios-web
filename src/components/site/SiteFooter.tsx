@@ -49,8 +49,8 @@ export default function SiteFooter() {
               className="h-12 w-auto"
             />
             <p className="mt-4 max-w-sm text-[13px] leading-relaxed text-white/45">
-              A Git-native, multi-tenant AI agent platform. We treat every
-              deployment as a long-running experiment.
+              A Git-native AI studio. We treat every deployment as a
+              long-running experiment.
             </p>
             <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-white/28">
               Mobile, Alabama · Built in the open

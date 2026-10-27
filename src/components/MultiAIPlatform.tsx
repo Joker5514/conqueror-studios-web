@@ -390,6 +390,9 @@ export default function MultiAIPlatform() {
       {/* Settings panel */}
       {showSettings && (
         <div className="border-b border-white/10 bg-white/[0.02] px-5 py-4 flex flex-wrap items-center gap-6">
+          <p className="w-full text-[12px] leading-relaxed text-white/45">
+            These keys stay in this browser session and are sent only to the provider you select. They are not stored by Conqueror Studios. The server gateway at /api/gateway uses separate server-side credentials.
+          </p>
           <label className="flex items-center gap-3 text-[13px] text-white/60">
             <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-white/40">Retry attempts</span>
             <input

@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/console/", "/api/", "/auth/"],
       },
     ],
-    sitemap: "https://conquerorstudios.dev/sitemap.xml",
+    sitemap: "https://www.conqueror-studios.com/sitemap.xml",
   };
 }

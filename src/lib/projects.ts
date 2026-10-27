@@ -190,7 +190,7 @@ export const repoCategories: RepoCategory[] = [
     title: "Infrastructure, DevOps & Tools",
     dotClass: "bg-white/60 shadow-[0_0_0_4px_rgba(255,255,255,0.06)]",
     entries: [
-      { name: "conqueror-studios-web", href: "https://github.com/Joker5514/conqueror-studios-web", lang: "TypeScript", body: "This site — official Conqueror Studios control plane. Git-native, multi-tenant, built in the open." },
+      { name: "conqueror-studios-web", href: "https://github.com/Joker5514/conqueror-studios-web", lang: "TypeScript", body: "This site — official Conqueror Studios control plane. Git-native, built in the open." },
       { name: "desk-commander", lang: "TypeScript", body: "Device automation system — cross-platform command and control for desktop environments." },
       { name: "api-keys-backend", lang: "JavaScript", body: "Secure API keys backend for Play Store app deployment and runtime credential management." },
       { name: "red-nexus-forge", lang: "Private", body: "Red Nexus Forge — internal tooling and scaffolding infrastructure for Conqueror Studios projects." },

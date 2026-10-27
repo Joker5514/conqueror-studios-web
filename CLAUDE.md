@@ -9,26 +9,26 @@ bun run dev          # Start dev server (Turbopack)
 bun run build        # Production build
 bun run lint         # Localhost-hardcode check + ESLint
 bun run typecheck    # tsc --noEmit
-bun run test         # bun test (runner configured, no test files yet)
+bun run test         # bun test src/**/*.test.js
 ```
 
 Run all three checks before finishing changes: `bun run lint && bun run typecheck && bun run test`.
 
 ## Architecture
 
-This is the marketing and R&D-facing website for **Conqueror Studios**, an independent AI lab. The stack is **Next.js 15 App Router**, **React 19**, **TypeScript 5** (strict), **Tailwind 4**, **Supabase** (SSR), **React Query 5**, **Postmark**, and **Stripe**. Package manager is **Bun**.
+This is the marketing and R&D-facing website for **Conqueror Studios**, an independent AI lab. The stack is **Next.js 16.3.4 App Router**, **React 19.2.6**, **TypeScript 6.0.3** (strict), **Tailwind 4.2.4**, **Supabase** (SSR), **React Query 5**, **Postmark**, and **Stripe 22**. Package manager is **Bun 1.3.13** (`packageManager`). Versions are the resolved `package.json` pins.
 
 ### App structure
 
 - `src/app/` — Next.js App Router pages. Server components by default; add `"use client"` only when needed.
 - `src/components/site/` — Shared UI components (`SiteHeader`, `SiteFooter`, `ProductHero`, `ProjectCard`, `FeatureGrid`, `SplitFeature`, `ProductCTA`, `HudCorners`). One component per file.
-- `src/lib/` — Backend helpers: `supabase/` (client + server + admin factories), `postmark/` (typed email sender), `projects.ts` (project metadata), `responsiveText.ts` (pretext helper), `rateLimit.ts` (in-process sliding-window rate limiter).
+- `src/lib/` — Backend helpers: `supabase/` (client + server + admin factories), `postmark/` (typed email sender), `projects.ts` (project metadata), `responsiveText.ts` (pretext helper), `rateLimit.ts` (in-process sliding-window rate limiter), `console-owner.ts` (fail-closed owner allowlist), `nexus-client.ts` (only reader of `NEXUS_URL`), `bridge-client.ts` (only reader of `BRIDGE_URL`), `site-url.ts` (canonical public origin).
 - `src/actions/` — Next.js server actions (e.g., `waitlist.ts`).
 - `src/hooks/` — Custom hooks. `useMountEffect.ts` is the approved mount-only effect hook.
 - `src/hooks/api/` — React Query hooks for server data: `useNexus.ts`, `useConsoleWaitlist.ts`.
 - `eslint-rules/` — Custom ESLint plugin with 7 enforcement rules (see below).
 - `scripts/lint-no-browser-localhost.mjs` — Pre-lint guard that fails if localhost URLs appear in browser-facing code.
-- `middleware.ts` — Next.js middleware entry-point. Delegates to `src/proxy.ts` → `src/lib/supabase/proxy.ts` to refresh Supabase auth cookies on every request. Excludes `/api/health` and `/api/stripe/webhook`.
+- `src/proxy.ts` — Next.js 16 request proxy (there is no `middleware.ts`). Delegates to `src/lib/supabase/proxy.ts` to refresh Supabase auth cookies on matched requests. Excludes `/api/health` and `/api/stripe/webhook`.
 
 ### Auth flow
 
@@ -36,11 +36,12 @@ This is the marketing and R&D-facing website for **Conqueror Studios**, an indep
 2. `/auth` renders `AuthForm` — sends a magic link via `supabase.auth.signInWithOtp`.
 3. Supabase emails a link back to `/auth/callback?next=/console`.
 4. `/auth/callback/route.ts` exchanges the PKCE code for a session and redirects to `next`.
-5. `middleware.ts` refreshes the session cookie on every subsequent request.
+5. `src/proxy.ts` refreshes the session cookie on subsequent matched requests.
+6. `CONSOLE_OWNER_EMAILS` is required. An empty allowlist redirects signed-in users to `/auth?error=console_unconfigured`. A signed-in address that is not on the list goes to `/auth?error=unauthorized`.
 
 ### Console routes
 
-All routes under `/console` require authentication. Every `layout.tsx` in the subtree performs its own `createClient().auth.getUser()` check and redirects to `/auth` on failure.
+All routes under `/console` require a session and an allowlisted owner email. Every `layout.tsx` in the subtree calls `createClient().auth.getUser()` and then `consoleOwnerRedirectPath()`.
 
 | Route | File | Description |
 |---|---|---|
@@ -55,20 +56,21 @@ All routes under `/console` require authentication. Every `layout.tsx` in the su
 | Route | Auth | Description |
 |---|---|---|
 | `GET /api/health` | None | Uptime probe — `{ status, ts, version }` |
-| `POST /api/nexus` | Session | Proxy to OrchestrAI Nexus `/run` (NEXUS_URL) |
-| `GET /api/nexus/schema` | Session | Proxy to AI Bridge `/tools/schema` (BRIDGE_URL) |
-| `GET /api/console/waitlist` | Session | Admin waitlist read (service-role) |
-| `GET /api/console/settings` | Session | Env health + deploy metadata |
-| `POST /api/console/broadcast` | Session | Fan-out broadcast email to waitlist via Postmark |
-| `POST /api/unsubscribe` | None | Remove email from waitlist (public, linked from emails) |
-| `POST /api/stripe/webhook` | Stripe sig | Typed event dispatch + DB upsert + dunning email |
-| `GET /api/agents` | Session | List user's agent definitions |
-| `POST /api/agents` | Session | Create a new agent |
-| `GET /api/agents/[id]` | Session + owner | Fetch single agent |
-| `PATCH /api/agents/[id]` | Session + owner | Update agent fields |
-| `DELETE /api/agents/[id]` | Session + owner | Delete agent + cascade runs |
-| `POST /api/agents/[id]/run` | Session + owner | Run agent via Nexus, persist to agent_runs |
-| `GET /api/agents/[id]/runs` | Session + owner | Paginated run history for one agent |
+| `POST /api/gateway` | `X-Gateway-Secret` | Server-side multi-provider gateway. Separate from Nexus and Bridge. |
+| `POST /api/nexus` | Session + owner allowlist | Proxy to OrchestrAI Nexus `POST /run` (`NEXUS_URL`, read only in `nexus-client.ts`) |
+| `GET /api/nexus/schema` | Session + owner allowlist | Proxy to AI Bridge v2 `GET /tools/schema` (`BRIDGE_URL`, read only in `bridge-client.ts`) |
+| `GET /api/console/waitlist` | Session + owner allowlist | Admin waitlist read (service-role) |
+| `GET /api/console/settings` | Session + owner allowlist | Env health booleans + deploy metadata. Does not return secret values. |
+| `POST /api/console/broadcast` | Session + owner allowlist | Fan-out broadcast email to waitlist via Postmark. CTA must be `https`. |
+| `POST /api/unsubscribe` | Signed token | Remove email from waitlist (public, linked from emails) |
+| `POST /api/stripe/webhook` | Stripe sig | Typed event dispatch. Subscription upsert failure returns 500 so Stripe retries. Dunning email failure does not. |
+| `GET /api/agents` | Session + owner allowlist | List the signed-in user's agent definitions (RLS) |
+| `POST /api/agents` | Session + owner allowlist | Create a new agent |
+| `GET /api/agents/[id]` | Session + owner allowlist + row owner | Fetch single agent |
+| `PATCH /api/agents/[id]` | Session + owner allowlist + row owner | Update agent fields |
+| `DELETE /api/agents/[id]` | Session + owner allowlist + row owner | Delete agent + cascade runs |
+| `POST /api/agents/[id]/run` | Session + owner allowlist + row owner | Buffered JSON run via Nexus, persist to `agent_runs` |
+| `GET /api/agents/[id]/runs` | Session + owner allowlist + row owner | Paginated run history for one agent |
 
 ### Supabase client pattern
 
@@ -81,7 +83,7 @@ The server env resolver (`server-env.ts`) has fallback priority: `GIC_SERVER_SUP
 
 ### Rate limiting
 
-`src/lib/rateLimit.ts` — In-process sliding-window rate limiter keyed on arbitrary strings (typically `"namespace:ip"`). Used by `src/actions/waitlist.ts` (3 req/min per IP). To swap for Upstash Redis (needed for multi-region Vercel), replace the `Map`-backed store with an Upstash client — the public `rateLimit(key, opts)` API is identical.
+`src/lib/rateLimit.ts` — In-process sliding-window rate limiter keyed on arbitrary strings. It does not coordinate across Vercel instances. Current callers: waitlist signup (3/min per IP), AI gateway (30/min per IP), Nexus proxy (20/min per user), agent run (10/min per user), broadcast (3/hour per user). Replacing the `Map` with a shared store would keep the `rateLimit(key, opts)` signature. Do not add a paid limiter without an explicit decision.
 
 ### Email (Postmark)
 
@@ -89,11 +91,11 @@ The server env resolver (`server-env.ts`) has fallback priority: `GIC_SERVER_SUP
 
 ### Waitlist server action
 
-`src/actions/waitlist.ts` — Server action for waitlist signup. Validates email, applies IP rate limiting (3/min), persists to Supabase `waitlist` table via admin client, and sends a Postmark `welcome-email`. Do not convert to an API route.
+`src/actions/waitlist.ts` — Server action for waitlist signup. Validates and caps fields, applies IP rate limiting (3/min), inserts into Supabase `waitlist` via the admin client, and sends a Postmark `welcome-email`. A duplicate email (`23505`) returns success and does not send another email. Missing service-role configuration returns an error instead of a false success. A confirmation-email failure after a successful insert is non-fatal. Do not convert this to an API route.
 
 ### Stripe
 
-`src/app/api/stripe/webhook/route.ts` — Webhook endpoint with HMAC signature verification. Typed `switch` dispatches `checkout.session.completed`, `customer.subscription.*`, and `invoice.*` events. Wire real DB writes (upsert to `subscriptions` table via admin client) as billing flows solidify.
+`src/app/api/stripe/webhook/route.ts` — Webhook endpoint with signature verification via `constructEvent`. A bad signature returns a generic 400. Typed `switch` dispatches `checkout.session.completed`, `customer.subscription.*`, and `invoice.*` events. Subscription rows upsert on `stripe_subscription_id` through the service-role client. If that write fails, or the service-role key is missing, the handler returns 500 (`finalizeWebhookHttp`) so Stripe retries. A dunning email failure is logged and does not fail the webhook. There is no `stripe_events` ledger, so a retried `invoice.payment_failed` can send the dunning email again.
 
 ### Database migrations
 
@@ -142,7 +144,8 @@ Strict mode is on. Use named imports, not namespace or barrel imports. Export ty
 
 ```
 # Site
-NEXT_PUBLIC_SITE_URL              # canonical public URL — used for unsubscribe/billing links
+NEXT_PUBLIC_SITE_URL              # public origin. Production is https://www.conqueror-studios.com. conquerorstudios.dev is rewritten.
+CONSOLE_OWNER_EMAILS              # required comma-separated owner emails. Empty fails closed (503).
 
 # Supabase (browser)
 NEXT_PUBLIC_SUPABASE_URL
@@ -164,8 +167,11 @@ STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
 
 # Backend services (server-only — never exposed to browser)
-NEXUS_URL                        # OrchestrAI Nexus service URL
-BRIDGE_URL                       # AI Bridge service URL
+NEXUS_URL                        # OrchestrAI Nexus base URL. Read only in src/lib/nexus-client.ts. No localhost default.
+BRIDGE_URL                       # AI Bridge v2 base URL (GET /tools/schema). Read only in src/lib/bridge-client.ts.
+NEXUS_SHARED_SECRET              # optional. Sent as X-Nexus-Secret only when set.
+BRIDGE_SHARED_SECRET             # optional. Sent as X-Gateway-Secret only when set. Not GATEWAY_SECRET.
+GATEWAY_SECRET                   # required for POST /api/gateway. Server-only.
 
 # Sandbox / local dev (GIC environment)
 GIC_SERVER_SUPABASE_URL

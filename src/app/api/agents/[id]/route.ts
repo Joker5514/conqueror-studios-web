@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRow } from "@/lib/agents/types";
 
@@ -29,9 +30,10 @@ async function resolveAgent(id: string, userId: string) {
 
 export async function GET(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
+  const { user } = access;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await resolveAgent(id, user.id);
   if (error || !data) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -52,9 +54,10 @@ interface PatchAgentBody {
 
 export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
+  const { user } = access;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Confirm ownership before updating
   const { data: existing, error: fetchErr } = await resolveAgent(id, user.id);
@@ -103,9 +106,10 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
 
 export async function DELETE(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
+  const { user } = access;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { error } = await supabase
     .from("agents")

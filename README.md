@@ -2,7 +2,7 @@
 
 Official website and control-plane for **Conqueror Studios** — an independent AI R&D lab building multi-agent orchestration, voice-first interfaces, and federated agentic architectures.
 
-**Live**: [conquerorstudios.dev](https://conquerorstudios.dev)  
+**Live**: [www.conqueror-studios.com](https://www.conqueror-studios.com)  
 **Lab director**: Randy Jordan — AI Architect & Systems Researcher, Mobile, Alabama
 
 ---

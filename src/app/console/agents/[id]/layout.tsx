@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
+import { consoleOwnerRedirectPath } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -11,5 +12,7 @@ export default async function ConsoleAgentDetailLayout({ children }: { children:
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth");
+  const ownerRedirect = consoleOwnerRedirectPath(user.email);
+  if (ownerRedirect) redirect(ownerRedirect);
   return <>{children}</>;
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireConsoleOwner } from "@/lib/console-owner";
 
 /**
  * src/app/api/console/settings/route.ts
@@ -24,9 +24,8 @@ const CHECKED_VARS: Record<string, string> = {
 };
 
 export async function GET(): Promise<NextResponse> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await requireConsoleOwner();
+  if (!access.ok) return access.response;
 
   const env: Record<string, boolean> = {};
   for (const [key, varName] of Object.entries(CHECKED_VARS)) {
