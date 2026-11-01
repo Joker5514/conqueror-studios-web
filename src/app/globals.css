@@ -57,6 +57,7 @@
 
   h1, h2, h3, h4 { letter-spacing: -0.02em; }
 
+  /* biome-ignore-start lint/complexity/noImportantStyles: reduced-motion must override component and inline animation styles */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       scroll-behavior: auto !important;
@@ -65,6 +66,7 @@
       animation-iteration-count: 1 !important;
     }
   }
+  /* biome-ignore-end lint/complexity/noImportantStyles: reduced-motion must override component and inline animation styles */
 }
 
 @layer utilities {

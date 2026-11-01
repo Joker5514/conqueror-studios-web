@@ -33,7 +33,6 @@ export async function GET(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const access = await requireConsoleOwner();
   if (!access.ok) return access.response;
   const { user } = access;
-  const supabase = await createClient();
 
   const { data, error } = await resolveAgent(id, user.id);
   if (error || !data) return NextResponse.json({ error: "Not found" }, { status: 404 });
