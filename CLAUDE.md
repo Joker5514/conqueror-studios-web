@@ -9,14 +9,14 @@ bun run dev          # Start dev server (Turbopack)
 bun run build        # Production build
 bun run lint         # Localhost-hardcode check + ESLint
 bun run typecheck    # tsc --noEmit
-bun run test         # bun test src/**/*.test.js
+bun run test         # bun test (fails when tests fail; no pass-with-no-tests)
 ```
 
 Run all three checks before finishing changes: `bun run lint && bun run typecheck && bun run test`.
 
 ## Architecture
 
-This is the marketing and R&D-facing website for **Conqueror Studios**, an independent AI lab. The stack is **Next.js 16.3.4 App Router**, **React 19.2.6**, **TypeScript 6.0.3** (strict), **Tailwind 4.2.4**, **Supabase** (SSR), **React Query 5**, **Postmark**, and **Stripe 22**. Package manager is **Bun 1.3.13** (`packageManager`). Versions are the resolved `package.json` pins.
+This is the marketing and R&D-facing website for **Conqueror Studios**, an independent AI lab. The stack is **Next.js 16.4.3 App Router**, **React 19.2.6**, **TypeScript 6.0.3** (strict), **Tailwind 4.2.4**, **Supabase** (SSR), **React Query 5**, **Postmark**, and **Stripe 22**. Package manager is **Bun 1.3.13** (`packageManager`). `bun.lock` is the only lockfile: Vercel picks npm whenever a `package-lock.json` exists, so do not add one. Versions are the resolved `package.json` pins.
 
 ### App structure
 
@@ -180,4 +180,13 @@ GIC_BROWSER_LOCAL_SERVICES_JSON  # JSON array: [{alias:"supabase",port:54321,sch
 
 ## CI workflows
 
-Ten GitHub Actions workflows cover: build verification, TypeScript check, Bun tests + Biome lint, package security scan, Supabase preview-branch DB, staging/prod migrations, migration protection gate, and SQL linting. Supabase migrations live in `supabase/migrations/` and are reviewed before merging.
+All app checks run on GitHub-hosted `ubuntu-latest` runners:
+
+- `ci.yml` — frozen `bun install`, entrypoint check, ESLint + localhost guard, `biome ci`, `tsc`, `bun test`, `bun audit --audit-level=high`, `next build`, then `next start` plus `scripts/smoke-test.mjs`.
+- `codeql.yml` — CodeQL `security-extended` for JavaScript/TypeScript.
+- `deploy-smoke.yml` — on Vercel `deployment_status` success, runs `scripts/smoke-test.mjs` against the deployment URL and, for Production, against `https://www.conqueror-studios.com`, requiring `/api/health` to report the deployed SHA. Protected previews are reported as not verified unless `VERCEL_AUTOMATION_BYPASS_SECRET` is set as an Actions secret.
+- `sql-migration-lint.yml`, `protect-supabase-migrations.yml` — migration lint (RLS required) and no deleted/renamed migrations.
+
+`preview-db-branch.yml`, `staging-db-migration.yml`, `staging-db-migration-rollback.yml`, and `prod-db-migration.yml` apply migrations through the Cofounder API on self-hosted `superoptimizers` runners. Those runners have not picked up jobs since late August 2026, so migrations are not applied automatically. Supabase migrations live in `supabase/migrations/` and are reviewed before merging.
+
+Dependabot (`.github/dependabot.yml`) uses the `bun` ecosystem; the `npm_and_yarn` ecosystem rejects Bun projects.
