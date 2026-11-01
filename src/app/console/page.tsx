@@ -73,7 +73,7 @@ export default function ConsolePage() {
   });
 
   const { mutate: run, data: runData, isPending, error: runError, reset } = useNexusRun();
-  const { data: schema } = useNexusSchema();
+  const { data: schema, error: schemaError, isLoading: schemaLoading } = useNexusSchema();
 
   const handleRun = useCallback(() => {
     if (!query.trim()) return;
@@ -269,8 +269,14 @@ export default function ConsolePage() {
       {/* ── Tool registry ─────────────────────────────────────────────────── */}
       <section>
         <div className="eyebrow mb-4">AI Bridge — Tool Registry</div>
-        {!schema ? (
-          <p className="text-[14px] text-white/40">Loading tool registry…</p>
+        {schemaLoading ? (
+          <p className="text-[14px] text-white/60" role="status">Loading tool registry…</p>
+        ) : schemaError ? (
+          <p className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 text-[13px] text-white/70" role="status">
+            Tool registry unavailable: {schemaError instanceof Error ? schemaError.message : "request failed"}
+          </p>
+        ) : !schema || schema.length === 0 ? (
+          <p className="text-[14px] text-white/60">AI Bridge reported no registered tools.</p>
         ) : (
           <div className="rounded-2xl border border-white/10 overflow-hidden">
             <table className="w-full border-collapse text-[13px]">

@@ -1,4 +1,5 @@
 import { readServerHttpUrl } from "@/lib/server-url";
+import { log } from "@/lib/log";
 
 /**
  * Server-side OrchestrAI Nexus client.
@@ -43,7 +44,7 @@ export async function postNexusRun(body: unknown): Promise<NexusCallResult> {
   } catch (err) {
     const name = err instanceof Error ? err.name : "";
     const timedOut = name === "TimeoutError" || name === "AbortError";
-    console.error("[nexus] request failed", timedOut ? "timeout" : name || "network");
+    log.error("nexus.request_failed", { reason: timedOut ? "timeout" : name || "network" });
     return {
       ok: false,
       status: timedOut ? 504 : 502,
@@ -67,7 +68,7 @@ export async function postNexusRun(body: unknown): Promise<NexusCallResult> {
     try {
       data = JSON.parse(text) as unknown;
     } catch {
-      console.error("[nexus] non-JSON response", res.status);
+      log.error("nexus.non_json_response", { status: res.status });
       return {
         ok: false,
         status: 502,
@@ -75,6 +76,17 @@ export async function postNexusRun(body: unknown): Promise<NexusCallResult> {
         code: "nexus_invalid_response",
       };
     }
+  }
+
+  if (!res.ok) {
+    log.error("nexus.upstream_error", { status: res.status });
+    const authFailed = res.status === 401 || res.status === 403;
+    return {
+      ok: false,
+      status: res.status === 504 ? 504 : 502,
+      error: authFailed ? "Nexus rejected this service's credentials" : "Nexus returned an error",
+      code: authFailed ? "nexus_auth_failed" : "nexus_upstream_error",
+    };
   }
 
   return { ok: true, status: res.status, data };

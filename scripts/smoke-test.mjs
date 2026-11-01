@@ -182,6 +182,66 @@ async function main() {
     record("gateway rejects unauthenticated calls", (res.status === 401 || res.status === 503) && code !== "", `HTTP ${res.status} ${code}`);
   }
 
+  // Protected surfaces must never answer 5xx-without-a-code: an anonymous
+  // visitor gets a redirect to /auth, a 401, or a 503 with a stable JSON code.
+  for (const path of ["/console", "/console/agents", "/console/settings"]) {
+    const { res } = await request(path);
+    const location = res.headers.get("location") ?? "";
+    const ok = res.status >= 300 && res.status < 400 && /\/auth(\?|$)/.test(new URL(location, baseUrl).pathname + new URL(location, baseUrl).search);
+    record(`GET ${path} redirects to sign-in`, ok, `HTTP ${res.status} ${location}`);
+  }
+
+  {
+    const { res } = await request("/billing");
+    const location = res.headers.get("location") ?? "";
+    const ok = res.status === 200 || (res.status >= 300 && res.status < 400 && location.includes("/auth"));
+    record("GET /billing degrades without 5xx", ok, `HTTP ${res.status} ${location}`);
+  }
+
+  {
+    const { res } = await request("/auth/callback");
+    const location = res.headers.get("location") ?? "";
+    record("GET /auth/callback without code", res.status >= 300 && res.status < 400 && location.includes("/auth?error="), `HTTP ${res.status} ${location}`);
+  }
+
+  const apiChecks = [
+    ["GET", "/api/agents"],
+    ["GET", "/api/console/settings"],
+    ["GET", "/api/console/waitlist"],
+    ["GET", "/api/nexus/schema"],
+    ["POST", "/api/nexus"],
+    ["POST", "/api/billing/portal"],
+  ];
+  for (const [method, path] of apiChecks) {
+    const init = method === "POST"
+      ? { method, headers: { "content-type": "application/json" }, body: JSON.stringify({ query: "smoke" }) }
+      : { method };
+    const { res, body } = await request(path, init);
+    let code = "";
+    try {
+      code = JSON.parse(body).code ?? "";
+    } catch {
+      // not JSON
+    }
+    const ok = (res.status === 401 || res.status === 503) && code !== "";
+    record(`${method} ${path} rejects anonymous callers`, ok, `HTTP ${res.status} ${code}`);
+  }
+
+  {
+    const { body } = await request("/api/health");
+    let json = {};
+    try {
+      json = JSON.parse(body);
+    } catch {
+      // handled below
+    }
+    const ok = typeof json.ready === "boolean" && json.services && typeof json.services === "object";
+    const notConfigured = ok
+      ? Object.entries(json.services).filter(([, v]) => v !== "configured").map(([k, v]) => `${k}=${v}`).join(", ")
+      : "";
+    record("health reports readiness", ok, ok ? `ready=${json.ready}${notConfigured ? `; ${notConfigured}` : ""}` : "missing ready/services");
+  }
+
   const failed = results.filter((r) => !r.ok);
   writeSummary(failed.length === 0 ? "Smoke test passed" : `Smoke test failed (${failed.length})`);
   console.log(`\n${results.length - failed.length}/${results.length} checks passed`);

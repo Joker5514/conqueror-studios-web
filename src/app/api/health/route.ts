@@ -1,17 +1,24 @@
 import { NextResponse } from "next/server";
+import { isCoreReady, serviceReadiness } from "@/lib/service-config";
 
 /**
- * src/app/api/health/route.ts
- *
- * Public health-check endpoint consumed by Vercel, Railway, and uptime monitors.
- *
  * GET /api/health
- *  200 { status: "ok", ts: <ISO timestamp>, version: <git sha or "dev"> }
+ *
+ * Liveness plus configuration readiness, for Vercel, uptime monitors, and the
+ * deployment smoke test.
+ *
+ *  200 {
+ *    status: "ok",                    // the process is serving requests
+ *    ready: boolean,                  // sign-in and database are configured
+ *    services: { auth, database, ... } // "configured" | "not_configured" | "invalid"
+ *    ts, version
+ *  }
+ *
+ * Only presence is reported, never values or URLs.
  */
 
 export const runtime = "nodejs";
-// Disable caching so monitors always get a fresh response.
-export const revalidate = 0;
+export const dynamic = "force-dynamic";
 
 function resolveVersion(): string {
   return (
@@ -25,9 +32,12 @@ function resolveVersion(): string {
 }
 
 export function GET(): NextResponse {
+  const services = serviceReadiness();
   return NextResponse.json(
     {
       status: "ok",
+      ready: isCoreReady(services),
+      services,
       ts: new Date().toISOString(),
       version: resolveVersion(),
     },

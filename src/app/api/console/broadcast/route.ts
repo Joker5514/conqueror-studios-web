@@ -4,6 +4,8 @@ import { requireConsoleOwner } from "@/lib/console-owner";
 import { rateLimit } from "@/lib/rateLimit";
 import { configuredSiteOrigin } from "@/lib/site-url";
 import { createUnsubscribeToken } from "@/lib/unsubscribe-token";
+import { log } from "@/lib/log";
+import { isDatabaseConfigured, isEmailConfigured } from "@/lib/service-config";
 
 /**
  * src/app/api/console/broadcast/route.ts
@@ -54,8 +56,17 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   // ── Fetch recipient emails via admin client ─────────────────────────────────
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json({ error: "Admin client not configured" }, { status: 503 });
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json(
+      { error: "Database is not configured", code: "database_unconfigured" },
+      { status: 503 },
+    );
+  }
+  if (!isEmailConfigured()) {
+    return NextResponse.json(
+      { error: "Email is not configured", code: "email_unconfigured" },
+      { status: 503 },
+    );
   }
 
   const { createAdminClient } = await import("@/lib/supabase/admin");
@@ -66,7 +77,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     .order("created_at", { ascending: true });
 
   if (dbError) {
-    console.error("[broadcast] db error", dbError);
+    log.error("broadcast.recipients_query_failed", { code: dbError.code });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
@@ -108,7 +119,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       });
       sent++;
     } catch (err) {
-      console.error("[broadcast] send failed", err instanceof Error ? err.message : "unknown");
+      log.error("broadcast.send_failed", { err });
       failures.push(email);
     }
   }

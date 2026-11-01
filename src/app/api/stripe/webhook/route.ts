@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { configuredSiteOrigin } from "@/lib/site-url";
 import { finalizeWebhookHttp } from "@/lib/stripe-webhook-result";
+import { log } from "@/lib/log";
+import { isDatabaseConfigured } from "@/lib/service-config";
 
 /**
  * src/app/api/stripe/webhook/route.ts
@@ -21,8 +23,8 @@ const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 
 async function upsertSubscription(sub: Stripe.Subscription): Promise<boolean> {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.error("[stripe] subscription persistence is not configured");
+  if (!isDatabaseConfigured()) {
+    log.error("stripe.persistence_unconfigured");
     return false;
   }
   const { createAdminClient } = await import("@/lib/supabase/admin");
@@ -60,7 +62,7 @@ async function upsertSubscription(sub: Stripe.Subscription): Promise<boolean> {
     { onConflict: "stripe_subscription_id" },
   );
   if (error) {
-    console.error("[stripe] upsert failed", error);
+    log.error("stripe.subscription_upsert_failed", { code: error.code });
     return false;
   }
   return true;
@@ -96,7 +98,7 @@ export async function POST(request: Request) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
-      console.log("[stripe] checkout.session.completed", session.id);
+      log.info("stripe.event", { type: event.type, event_id: event.id, object_id: session.id });
       // If the checkout created a subscription, upsert it now.
       if (session.subscription) {
         try {
@@ -107,7 +109,7 @@ export async function POST(request: Request) {
           );
           if (!(await upsertSubscription(sub))) persistenceFailed = true;
         } catch (err) {
-          console.error("[stripe] failed to retrieve/upsert subscription", err);
+          log.error("stripe.subscription_retrieve_failed", { err });
           persistenceFailed = true;
         }
       }
@@ -117,28 +119,28 @@ export async function POST(request: Request) {
     case "customer.subscription.created":
     case "customer.subscription.updated": {
       const subscription = event.data.object;
-      console.log(`[stripe] ${event.type}`, subscription.id, subscription.status);
+      log.info("stripe.event", { type: event.type, event_id: event.id, object_id: subscription.id, status: subscription.status });
       if (!(await upsertSubscription(subscription))) persistenceFailed = true;
       break;
     }
 
     case "customer.subscription.deleted": {
       const subscription = event.data.object;
-      console.log("[stripe] customer.subscription.deleted", subscription.id);
+      log.info("stripe.event", { type: event.type, event_id: event.id, object_id: subscription.id });
       if (!(await upsertSubscription(subscription))) persistenceFailed = true;
       break;
     }
 
     case "invoice.payment_succeeded": {
       const invoice = event.data.object;
-      console.log("[stripe] invoice.payment_succeeded", invoice.id);
+      log.info("stripe.event", { type: event.type, event_id: event.id, object_id: invoice.id });
       // Subscription status already updated via subscription.updated event.
       break;
     }
 
     case "invoice.payment_failed": {
       const invoice = event.data.object;
-      console.log("[stripe] invoice.payment_failed", invoice.id);
+      log.info("stripe.event", { type: event.type, event_id: event.id, object_id: invoice.id });
       // Trigger dunning email to the customer.
       const customerEmail =
         typeof invoice.customer_email === "string"
@@ -164,7 +166,7 @@ export async function POST(request: Request) {
             update_billing_url: `${siteUrl}/billing`,
             support_email: "r.jordan@conqueror-studios.com",
           },
-        }).catch((err) => console.error("[stripe] dunning email failed", err));
+        }).catch((err) => log.error("stripe.dunning_email_failed", { err }));
       }
       break;
     }

@@ -22,7 +22,7 @@ This is the marketing and R&D-facing website for **Conqueror Studios**, an indep
 
 - `src/app/` — Next.js App Router pages. Server components by default; add `"use client"` only when needed.
 - `src/components/site/` — Shared UI components (`SiteHeader`, `SiteFooter`, `ProductHero`, `ProjectCard`, `FeatureGrid`, `SplitFeature`, `ProductCTA`, `HudCorners`). One component per file.
-- `src/lib/` — Backend helpers: `supabase/` (client + server + admin factories), `postmark/` (typed email sender), `projects.ts` (project metadata), `responsiveText.ts` (pretext helper), `rateLimit.ts` (in-process sliding-window rate limiter), `console-owner.ts` (fail-closed owner allowlist), `nexus-client.ts` (only reader of `NEXUS_URL`), `bridge-client.ts` (only reader of `BRIDGE_URL`), `site-url.ts` (canonical public origin).
+- `src/lib/` — Backend helpers: `supabase/` (client + server + admin factories), `postmark/` (typed email sender), `projects.ts` (project metadata), `responsiveText.ts` (pretext helper), `rateLimit.ts` (in-process sliding-window rate limiter), `console-owner.ts` (fail-closed owner allowlist), `nexus-client.ts` (only reader of `NEXUS_URL`), `bridge-client.ts` (only reader of `BRIDGE_URL`), `site-url.ts` (canonical public origin), `service-config.ts` (which backends are configured; presence only), `log.ts` (structured JSON logger with redaction), `supabase/session.ts` (`lookupSession()`, never throws).
 - `src/actions/` — Next.js server actions (e.g., `waitlist.ts`).
 - `src/hooks/` — Custom hooks. `useMountEffect.ts` is the approved mount-only effect hook.
 - `src/hooks/api/` — React Query hooks for server data: `useNexus.ts`, `useConsoleWaitlist.ts`.
@@ -38,10 +38,11 @@ This is the marketing and R&D-facing website for **Conqueror Studios**, an indep
 4. `/auth/callback/route.ts` exchanges the PKCE code for a session and redirects to `next`.
 5. `src/proxy.ts` refreshes the session cookie on subsequent matched requests.
 6. `CONSOLE_OWNER_EMAILS` is required. An empty allowlist redirects signed-in users to `/auth?error=console_unconfigured`. A signed-in address that is not on the list goes to `/auth?error=unauthorized`.
+7. Missing Supabase configuration never throws: pages redirect to `/auth?error=auth_unconfigured` (the sign-in page then explains that sign-in is offline instead of rendering a form), APIs return 503 `auth_unconfigured`, and an unreachable auth service returns 503 `auth_unavailable`. Expired or reused magic links land on `/auth?error=link_invalid`.
 
 ### Console routes
 
-All routes under `/console` require a session and an allowlisted owner email. Every `layout.tsx` in the subtree calls `createClient().auth.getUser()` and then `consoleOwnerRedirectPath()`.
+All routes under `/console` require a session and an allowlisted owner email. Every `layout.tsx` in the subtree calls `requireConsoleOwnerPage()` (`src/lib/console-owner.ts`), which resolves the session with `lookupSession()` and redirects using `decideConsoleAccess()`. API routes use `requireConsoleOwner()`.
 
 | Route | File | Description |
 |---|---|---|
@@ -55,7 +56,7 @@ All routes under `/console` require a session and an allowlisted owner email. Ev
 
 | Route | Auth | Description |
 |---|---|---|
-| `GET /api/health` | None | Uptime probe — `{ status, ts, version }` |
+| `GET /api/health` | None | Liveness and readiness — `{ status: "ok", ready, services, ts, version }`. `services` reports presence only (`configured`/`not_configured`/`invalid`). |
 | `POST /api/gateway` | `X-Gateway-Secret` | Server-side multi-provider gateway. Separate from Nexus and Bridge. |
 | `POST /api/nexus` | Session + owner allowlist | Proxy to OrchestrAI Nexus `POST /run` (`NEXUS_URL`, read only in `nexus-client.ts`) |
 | `GET /api/nexus/schema` | Session + owner allowlist | Proxy to AI Bridge v2 `GET /tools/schema` (`BRIDGE_URL`, read only in `bridge-client.ts`) |
@@ -135,6 +136,12 @@ Use `@chenglou/pretext` for text-heavy responsive layout, multiline height predi
 ### Styling
 
 Tailwind 4 with a custom `@theme` block in `globals.css`. Design language is dark-only (cyberpunk/HUD aesthetic): accent color `#e84040`, fonts Orbitron (display) / Inter (body) / JetBrains Mono (code). Custom utility classes are prefixed `cs-` (e.g., `cs-btn-deploy`, `cs-link-arrow`, `cs-eyebrow`). Do not add `color-scheme: light` or light-mode variants.
+
+### Logging and errors
+
+Server code logs through `log.info/warn/error(event, fields)` from `src/lib/log.ts`, never raw `console.*`. Fields are redacted (credential-like keys, email local parts, token shapes). Log Supabase errors by `code`, not the whole object, because `details` can contain row values. API errors are JSON `{ error, code }` with a stable `code`; upstream (Nexus, Bridge) error bodies are never forwarded to the browser.
+
+`src/app/error.tsx`, `global-error.tsx`, and `not-found.tsx` are the branded error boundaries.
 
 ### TypeScript
 

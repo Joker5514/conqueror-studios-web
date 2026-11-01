@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRunRow } from "@/lib/agents/types";
+import { log } from "@/lib/log";
 
 /**
  * src/app/api/agents/[id]/runs/route.ts
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     .range(offset, offset + limit - 1);
 
   if (error) {
-    console.error("[agent_runs] list error", error);
+    log.error("agent_runs.list_failed", { code: error.code });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 

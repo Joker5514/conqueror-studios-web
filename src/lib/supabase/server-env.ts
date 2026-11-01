@@ -109,16 +109,31 @@ export function getSupabaseServerEnv(): SupabaseServerEnv {
   return env;
 }
 
-export function getSupabaseAdminEnv() {
+export interface SupabaseAdminEnv {
+  supabaseUrl: string;
+  supabaseServiceRoleKey: string;
+}
+
+export function tryGetSupabaseAdminEnv(): SupabaseAdminEnv | null {
   const supabaseUrl = getServerSupabaseUrl();
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
-    throw new Error(MISSING_SUPABASE_ADMIN_ENV_ERROR);
+    return null;
   }
 
   return {
     supabaseUrl,
     supabaseServiceRoleKey,
   };
+}
+
+export function getSupabaseAdminEnv(): SupabaseAdminEnv {
+  const env = tryGetSupabaseAdminEnv();
+
+  if (!env) {
+    throw new Error(MISSING_SUPABASE_ADMIN_ENV_ERROR);
+  }
+
+  return env;
 }

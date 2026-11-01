@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { isValidUnsubscribeToken } from "@/lib/unsubscribe-token";
+import { log } from "@/lib/log";
+import { isDatabaseConfigured } from "@/lib/service-config";
 
 /**
  * src/app/api/unsubscribe/route.ts
@@ -30,8 +32,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid unsubscribe link" }, { status: 403 });
   }
 
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json({ error: "Service not configured" }, { status: 503 });
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json(
+      { error: "Service not configured", code: "database_unconfigured" },
+      { status: 503 },
+    );
   }
 
   const { createAdminClient } = await import("@/lib/supabase/admin");
@@ -43,7 +48,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     .eq("email", email);
 
   if (dbError) {
-    console.error("[unsubscribe] db error", dbError);
+    log.error("unsubscribe.delete_failed", { code: dbError.code });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 

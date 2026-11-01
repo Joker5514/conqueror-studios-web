@@ -1,4 +1,5 @@
 import { readServerHttpUrl } from "@/lib/server-url";
+import { log } from "@/lib/log";
 
 /**
  * Server-side AI Bridge tools-schema client.
@@ -12,8 +13,12 @@ export type BridgeCallResult =
   | { ok: true; status: number; data: unknown }
   | { ok: false; status: number; error: string; code: string };
 
+export function bridgeBaseUrl(): ReturnType<typeof readServerHttpUrl> {
+  return readServerHttpUrl(process.env.BRIDGE_URL);
+}
+
 export async function getBridgeToolSchema(): Promise<BridgeCallResult> {
-  const base = readServerHttpUrl(process.env.BRIDGE_URL);
+  const base = bridgeBaseUrl();
   if (!base.ok) {
     return {
       ok: false,
@@ -37,7 +42,7 @@ export async function getBridgeToolSchema(): Promise<BridgeCallResult> {
   } catch (err) {
     const name = err instanceof Error ? err.name : "";
     const timedOut = name === "TimeoutError" || name === "AbortError";
-    console.error("[bridge] schema request failed", timedOut ? "timeout" : name || "network");
+    log.error("bridge.schema_request_failed", { reason: timedOut ? "timeout" : name || "network" });
     return {
       ok: false,
       status: timedOut ? 504 : 502,
@@ -61,7 +66,7 @@ export async function getBridgeToolSchema(): Promise<BridgeCallResult> {
     try {
       data = JSON.parse(text) as unknown;
     } catch {
-      console.error("[bridge] non-JSON schema response", res.status);
+      log.error("bridge.non_json_schema_response", { status: res.status });
       return {
         ok: false,
         status: 502,
@@ -69,6 +74,17 @@ export async function getBridgeToolSchema(): Promise<BridgeCallResult> {
         code: "bridge_invalid_response",
       };
     }
+  }
+
+  if (!res.ok) {
+    log.error("bridge.schema_upstream_error", { status: res.status });
+    const authFailed = res.status === 401 || res.status === 403;
+    return {
+      ok: false,
+      status: 502,
+      error: authFailed ? "AI Bridge rejected this service's credentials" : "AI Bridge returned an error",
+      code: authFailed ? "bridge_auth_failed" : "bridge_upstream_error",
+    };
   }
 
   return { ok: true, status: res.status, data };

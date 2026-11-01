@@ -78,8 +78,12 @@ export function useNexusRun() {
 
 async function fetchNexusSchema(): Promise<ToolDefinition[]> {
   const res = await fetch("/api/nexus/schema");
-  if (!res.ok) throw new Error(`Schema fetch failed: ${res.status}`);
-  return res.json() as Promise<ToolDefinition[]>;
+  if (!res.ok) {
+    const err = (await res.json().catch(() => ({}))) as { error?: string; code?: string };
+    throw new Error(err.error ? `${err.error}${err.code ? ` (${err.code})` : ""}` : `Schema fetch failed: ${res.status}`);
+  }
+  const data = (await res.json()) as unknown;
+  return Array.isArray(data) ? (data as ToolDefinition[]) : [];
 }
 
 export function useNexusSchema() {
@@ -87,5 +91,6 @@ export function useNexusSchema() {
     queryKey: ["nexus", "schema"],
     queryFn: fetchNexusSchema,
     staleTime: 60_000, // refresh every minute
+    retry: 1,
   });
 }

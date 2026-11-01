@@ -16,6 +16,7 @@ import type {
   GatewaySuccessResponse,
 } from "@/lib/ai-gateway/types";
 import { rateLimit } from "@/lib/rateLimit";
+import { log } from "@/lib/log";
 
 /**
  * POST /api/gateway
@@ -273,11 +274,8 @@ export async function POST(
     if (err instanceof ProviderHttpError) {
       return jsonError(err.status, err.message, err.code);
     }
-    // Log message/stack only — no request bodies or headers.
-    console.error(
-      "[api/gateway] unexpected failure:",
-      err instanceof Error ? err.stack || err.message : "unknown",
-    );
+    // Error name and message only; never request bodies or headers.
+    log.error("gateway.unexpected_failure", { err });
     return jsonError(500, "Internal server error", "internal_error");
   }
 }

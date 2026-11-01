@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
+import { isCoreReady, serviceReadiness } from "@/lib/service-config";
 
 /**
  * src/app/api/console/settings/route.ts
@@ -21,6 +22,12 @@ const CHECKED_VARS: Record<string, string> = {
   stripe_webhook_secret: "STRIPE_WEBHOOK_SECRET",
   nexus_url:             "NEXUS_URL",
   bridge_url:            "BRIDGE_URL",
+  console_owner_emails:  "CONSOLE_OWNER_EMAILS",
+  unsubscribe_secret:    "UNSUBSCRIBE_TOKEN_SECRET",
+  gateway_secret:        "GATEWAY_SECRET",
+  openai_api_key:        "OPENAI_API_KEY",
+  anthropic_api_key:     "ANTHROPIC_API_KEY",
+  xai_api_key:           "XAI_API_KEY",
 };
 
 export async function GET(): Promise<NextResponse> {
@@ -32,14 +39,17 @@ export async function GET(): Promise<NextResponse> {
     env[key] = Boolean(process.env[varName]?.trim());
   }
 
+  const services = serviceReadiness();
   return NextResponse.json({
     env,
+    services,
+    ready: isCoreReady(services),
     deploy: {
       version: process.env.VERCEL_GIT_COMMIT_SHA ?? "dev",
       env_name: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
       region: process.env.VERCEL_REGION ?? "local",
-      nexus_url: process.env.NEXUS_URL ? "configured" : "not set",
-      bridge_url: process.env.BRIDGE_URL ? "configured" : "not set",
+      nexus_url: services.nexus === "configured" ? "configured" : services.nexus === "invalid" ? "invalid" : "not set",
+      bridge_url: services.bridge === "configured" ? "configured" : services.bridge === "invalid" ? "invalid" : "not set",
     },
   });
 }

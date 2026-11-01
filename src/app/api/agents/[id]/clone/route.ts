@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRow } from "@/lib/agents/types";
+import { log } from "@/lib/log";
 
 /**
  * src/app/api/agents/[id]/clone/route.ts
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
         { status: 409 },
       );
     }
-    console.error("[agents/clone] error", error);
+    log.error("agents.clone_failed", { code: error.code });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
