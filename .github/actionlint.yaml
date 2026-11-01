@@ -1,0 +1,10 @@
+self-hosted-runner:
+  # Labels of the Cofounder "superoptimizers" runners used by the database
+  # migration workflows. Those runners have not picked up jobs since late
+  # August 2026; the app CI runs on GitHub-hosted runners instead.
+  labels:
+    - superoptimizers
+    - preview-db-branch
+    - prod-db-migration
+    - staging-db-migration
+    - staging-db-migration-rollback

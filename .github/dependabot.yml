@@ -1,0 +1,18 @@
+version: 2
+updates:
+  # The project is managed by Bun (bun.lock). The npm_and_yarn ecosystem
+  # refuses Bun projects, which is why earlier Dependabot runs failed.
+  - package-ecosystem: "bun"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3

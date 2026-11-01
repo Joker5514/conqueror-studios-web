@@ -6,22 +6,28 @@ on:
     paths:
       - 'supabase/migrations/**'
 
+permissions:
+  contents: read
+
 jobs:
   check-migration-integrity:
-    runs-on: ["self-hosted", "linux", "superoptimizers", "check-migration-integrity"]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Check for deleted or renamed migrations
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           echo "Checking for deleted or renamed migration files..."
 
           # Get the list of deleted or renamed files in supabase/migrations/
-          DELETED_OR_RENAMED=$(git diff --name-only --diff-filter=DR origin/${{ github.base_ref }}...HEAD -- supabase/migrations/)
+          DELETED_OR_RENAMED=$(git diff --name-only --diff-filter=DR "origin/${BASE_REF}...HEAD" -- supabase/migrations/)
 
           if [ -n "$DELETED_OR_RENAMED" ]; then
             echo "❌ ERROR: Applied Supabase migration files cannot be deleted or renamed!"
