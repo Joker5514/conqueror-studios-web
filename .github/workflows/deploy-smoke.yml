@@ -1,0 +1,47 @@
+name: Deployment smoke test
+
+# Vercel reports deployments to GitHub. This job checks the deployed
+# application itself instead of trusting the deployment status.
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke test ${{ github.event.deployment.environment }}
+    if: github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.deployment.sha }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Smoke test the deployment URL
+        env:
+          TARGET_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+          DEPLOY_ENVIRONMENT: ${{ github.event.deployment.environment }}
+          DEPLOY_SHA: ${{ github.event.deployment.sha }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          SMOKE_SUMMARY_FILE: ${{ runner.temp }}/smoke-deployment.md
+        run: |
+          profile=preview
+          case "$DEPLOY_ENVIRONMENT" in Production|production) profile=production ;; esac
+          node scripts/smoke-test.mjs "$TARGET_URL" --profile "$profile" --expect-sha "$DEPLOY_SHA"
+
+      - name: Smoke test the canonical domain
+        if: github.event.deployment.environment == 'Production' || github.event.deployment.environment == 'production'
+        env:
+          DEPLOY_SHA: ${{ github.event.deployment.sha }}
+          SMOKE_SUMMARY_FILE: ${{ runner.temp }}/smoke-canonical.md
+        run: node scripts/smoke-test.mjs https://www.conqueror-studios.com --profile production --expect-sha "$DEPLOY_SHA" --wait-for-sha 180
+
+      - name: Publish summary
+        if: always()
+        run: cat "$RUNNER_TEMP"/smoke-*.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true

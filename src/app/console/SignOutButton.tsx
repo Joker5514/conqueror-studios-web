@@ -1,9 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function SignOutButton() {
+  const router = useRouter();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -18,7 +20,8 @@ export default function SignOutButton() {
         setPending(false);
         return;
       }
-      window.location.href = "/auth";
+      router.replace("/auth");
+      router.refresh();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : "Sign-out failed");
       setPending(false);

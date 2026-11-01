@@ -32,7 +32,7 @@ export default function HomePage() {
 
             {/* Left: Headline + CTAs */}
             <div className="flex flex-col gap-7">
-              <div className="flex flex-wrap items-center gap-2" aria-label="Company details">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="cs-eyebrow">Independent AI R&amp;D Lab</span>
                 <span className="cs-chip">
                   <span className="status-dot" />
