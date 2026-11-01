@@ -11,6 +11,9 @@ let nextResponseNextCalls = [];
 // (avoids mock.module("./server-env"), which leaks into sibling test files).
 let savedEnv;
 
+// Lets a test make the auth service fail instead of returning a null user.
+let getUserImpl = async () => ({ data: { user: null }, error: null });
+
 // ─── Module mocks (external packages only) ───────────────────────────────────
 
 const makeNextResponse = (request) => {
@@ -50,7 +53,7 @@ mock.module("@supabase/ssr", () => ({
       auth: {
         getUser: async () => {
           getUserCalls.push(true);
-          return { data: { user: null }, error: null };
+          return getUserImpl();
         },
       },
     };
@@ -107,6 +110,7 @@ beforeEach(() => {
   createServerClientCalls = [];
   setCookieCalls = [];
   nextResponseNextCalls = [];
+  getUserImpl = async () => ({ data: { user: null }, error: null });
 });
 
 afterEach(() => {
@@ -206,4 +210,36 @@ test("skips session refresh for any request path when Supabase is not configured
 
   expect(createServerClientCalls).toHaveLength(0);
   expect(getUserCalls).toHaveLength(0);
+});
+
+test("an unreachable auth service does not make the request fail", async () => {
+  configureSupabaseEnv();
+  getUserImpl = async () => {
+    throw new TypeError("fetch failed");
+  };
+
+  const response = await updateSession(makeRequest("/waitlist"));
+
+  expect(response).not.toBeNull();
+  expect(getUserCalls).toHaveLength(1);
+});
+
+test("forwards extra request headers (correlation id) to route handlers", async () => {
+  configureSupabaseEnv();
+  const request = { ...makeRequest("/api/agents"), headers: new Headers({ accept: "application/json" }) };
+
+  await updateSession(request, { "x-correlation-id": "req_trace_12345" });
+
+  const forwarded = nextResponseNextCalls[0].request.headers;
+  expect(forwarded.get("x-correlation-id")).toBe("req_trace_12345");
+  expect(forwarded.get("accept")).toBe("application/json");
+});
+
+test("forwards extra headers when Supabase is not configured too", async () => {
+  const request = { ...makeRequest("/api/agents"), headers: new Headers() };
+
+  await updateSession(request, { "x-correlation-id": "req_trace_12345" });
+
+  expect(nextResponseNextCalls[0].request.headers.get("x-correlation-id")).toBe("req_trace_12345");
+  expect(createServerClientCalls).toHaveLength(0);
 });
