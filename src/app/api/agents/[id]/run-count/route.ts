@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
+import { isUuid } from "@/lib/agents/validate";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -16,6 +17,7 @@ export async function GET(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
   const access = await requireConsoleOwner();
   if (!access.ok) return access.response;
+  if (!isUuid(id)) return NextResponse.json({ error: "Not found", code: "not_found" }, { status: 404 });
   const { user } = access;
   const supabase = await createClient();
 

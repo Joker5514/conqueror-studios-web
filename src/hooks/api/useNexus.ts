@@ -50,10 +50,7 @@ export interface ToolDefinition {
 
 // ── POST /api/nexus — run a query ─────────────────────────────────────────────
 
-async function postNexusRun(params: {
-  query: string;
-  context?: Record<string, unknown>;
-}): Promise<NexusRunResult> {
+async function postNexusRun(params: { query: string }): Promise<NexusRunResult> {
   const res = await fetch("/api/nexus", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

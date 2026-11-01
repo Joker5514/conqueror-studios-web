@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   useAgents,
@@ -242,7 +242,7 @@ export default function ConsoleAgentsPage() {
             placeholder="You are a helpful assistant that…"
           />
           <AgentField
-            label="Allowed tools (comma-separated, blank = all)"
+            label="Allowed tools (comma-separated; blank grants no tools)"
             value={toolsInput}
             onChange={setToolsInput}
             placeholder="github_list_repos, search_web"
@@ -544,15 +544,13 @@ function AgentCard({
 
 // ── Field helper ──────────────────────────────────────────────────────────────
 
-let _afId = 0;
-
 function AgentField({
   label, value, onChange, type = "text", required, as, rows, placeholder,
 }: {
   label: string; value: string; onChange: (v: string) => void;
   type?: string; required?: boolean; as?: "textarea"; rows?: number; placeholder?: string;
 }) {
-  const id = `af-${(++_afId).toString()}`;
+  const id = useId();
   const cls = "mt-2 w-full rounded-md border border-white/12 bg-white/[0.02] px-3 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none transition-colors focus:border-[#e84040]";
   return (
     <label htmlFor={id} className="block">

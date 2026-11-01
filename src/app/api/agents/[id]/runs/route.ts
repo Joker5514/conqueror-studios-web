@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRunRow } from "@/lib/agents/types";
+import { isUuid, parseBoundedInt } from "@/lib/agents/validate";
 import { log } from "@/lib/log";
 
 /**
@@ -16,6 +17,7 @@ export async function GET(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
   const access = await requireConsoleOwner();
   if (!access.ok) return access.response;
+  if (!isUuid(id)) return NextResponse.json({ error: "Not found", code: "not_found" }, { status: 404 });
   const { user } = access;
   const supabase = await createClient();
 
@@ -30,8 +32,8 @@ export async function GET(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   if (!agent) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const url = new URL(req.url);
-  const limit  = Math.min(Number(url.searchParams.get("limit")  ?? "20"), 100);
-  const offset = Math.max(Number(url.searchParams.get("offset") ?? "0"),  0);
+  const limit = parseBoundedInt(url.searchParams.get("limit"), 20, 1, 100);
+  const offset = parseBoundedInt(url.searchParams.get("offset"), 0, 0, 100_000);
 
   const { data, error, count } = await supabase
     .from("agent_runs")

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRow } from "@/lib/agents/types";
+import { isUuid, validateAgentPatch } from "@/lib/agents/validate";
 import { log } from "@/lib/log";
 
 /**
@@ -33,6 +34,7 @@ export async function GET(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
   const access = await requireConsoleOwner();
   if (!access.ok) return access.response;
+  if (!isUuid(id)) return NextResponse.json({ error: "Not found", code: "not_found" }, { status: 404 });
   const { user } = access;
 
   const { data, error } = await resolveAgent(id, user.id);
@@ -43,19 +45,11 @@ export async function GET(_req: NextRequest, ctx: Ctx): Promise<NextResponse> {
 
 // ── PATCH ─────────────────────────────────────────────────────────────────────
 
-interface PatchAgentBody {
-  name?: string;
-  description?: string;
-  system_prompt?: string;
-  model?: string;
-  tools?: string[];
-  status?: "draft" | "active" | "archived";
-}
-
 export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
   const access = await requireConsoleOwner();
   if (!access.ok) return access.response;
+  if (!isUuid(id)) return NextResponse.json({ error: "Not found", code: "not_found" }, { status: 404 });
   const { user } = access;
   const supabase = await createClient();
 
@@ -63,21 +57,18 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { data: existing, error: fetchErr } = await resolveAgent(id, user.id);
   if (fetchErr || !existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  let body: Partial<PatchAgentBody>;
+  let body: unknown;
   try {
-    body = await req.json() as Partial<PatchAgentBody>;
+    body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON body", code: "invalid_json" }, { status: 400 });
   }
 
-  // Build partial update — only include fields that were sent
-  const patch: Record<string, unknown> = {};
-  if (body.name          !== undefined) patch.name          = body.name.trim();
-  if (body.description   !== undefined) patch.description   = body.description?.trim() ?? null;
-  if (body.system_prompt !== undefined) patch.system_prompt = body.system_prompt;
-  if (body.model         !== undefined) patch.model         = body.model.trim();
-  if (body.tools         !== undefined) patch.tools         = body.tools;
-  if (body.status        !== undefined) patch.status        = body.status;
+  const parsed = validateAgentPatch(body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error, code: "invalid_input", field: parsed.field }, { status: 400 });
+  }
+  const patch: Record<string, unknown> = { ...parsed.value };
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json({ agent: existing });
@@ -108,14 +99,20 @@ export async function DELETE(_req: NextRequest, ctx: Ctx): Promise<NextResponse>
   const { id } = await ctx.params;
   const access = await requireConsoleOwner();
   if (!access.ok) return access.response;
+  if (!isUuid(id)) return NextResponse.json({ error: "Not found", code: "not_found" }, { status: 404 });
   const { user } = access;
   const supabase = await createClient();
 
-  const { error } = await supabase
+  const { data: deleted, error } = await supabase
     .from("agents")
     .delete()
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .select("id");
+
+  if (!error && (deleted ?? []).length === 0) {
+    return NextResponse.json({ error: "Not found", code: "not_found" }, { status: 404 });
+  }
 
   if (error) {
     log.error("agents.delete_failed", { code: error.code });

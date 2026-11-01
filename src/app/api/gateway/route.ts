@@ -33,6 +33,7 @@ export const dynamic = "force-dynamic";
 
 /** Cap total prompt content to limit memory / token spend abuse. */
 const MAX_MESSAGE_CHARS = 100_000;
+const MAX_MESSAGES = 100;
 
 const UPSTREAM_FETCH_TIMEOUT_MS = 60_000;
 
@@ -53,6 +54,7 @@ function clientIp(req: NextRequest): string {
 
 function normalizeMessages(body: GatewayRequestBody): GatewayMessage[] | null {
   if (Array.isArray(body.messages) && body.messages.length > 0) {
+    if (body.messages.length > MAX_MESSAGES) return null;
     const out: GatewayMessage[] = [];
     for (const m of body.messages) {
       if (!m || typeof m !== "object") return null;
@@ -220,7 +222,7 @@ export async function POST(
   if (!messages) {
     return jsonError(
       400,
-      "Provide non-empty messages[] or input string",
+      `Provide 1-${MAX_MESSAGES} messages or an input string`,
       "invalid_messages",
     );
   }

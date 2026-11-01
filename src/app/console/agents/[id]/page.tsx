@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useCallback } from "react";
+import { useCallback, useId, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -23,6 +23,7 @@ const MODELS = [
 ] as const;
 
 import type { AgentRunRow } from "@/lib/agents/types";
+import { csvCell } from "@/lib/console/csv";
 
 /**
  * src/app/console/agents/[id]/page.tsx
@@ -296,7 +297,7 @@ onChange={(e) => { setEditModel(e.target.value === "custom" ? "" : e.target.valu
             rows={5}
           />
           <AgentField
-            label="Allowed tools (comma-separated, blank = all)"
+            label="Allowed tools (comma-separated; blank grants no tools)"
             value={editTools}
             onChange={setEditTools}
           />
@@ -551,14 +552,6 @@ onChange={(e) => { setEditModel(e.target.value === "custom" ? "" : e.target.valu
 
 // ── CSV export ────────────────────────────────────────────────────────────────
 
-function csvEscape(v: string | null | undefined): string {
-  const s = v ?? "";
-  if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
-}
-
 async function exportRunsCsv(agentId: string, agentName: string): Promise<void> {
   const res = await fetch(`/api/agents/${agentId}/runs?limit=1000&offset=0`);
   if (!res.ok) { window.alert("Failed to load runs for export."); return; }
@@ -574,13 +567,13 @@ async function exportRunsCsv(agentId: string, agentName: string): Promise<void> 
 
   const header = ["Date", "Status", "Routing Mode", "Latency (ms)", "Input", "Output", "Correlation ID"];
   const rows = runs.map((r) => [
-    csvEscape(new Date(r.created_at).toISOString()),
-    csvEscape(r.status),
-    csvEscape(r.routing_mode),
-    csvEscape(r.latency_ms?.toString()),
-    csvEscape(r.input),
-    csvEscape(r.output),
-    csvEscape(r.correlation_id),
+    csvCell(new Date(r.created_at).toISOString()),
+    csvCell(r.status),
+    csvCell(r.routing_mode),
+    csvCell(r.latency_ms?.toString()),
+    csvCell(r.input),
+    csvCell(r.output),
+    csvCell(r.correlation_id),
   ].join(","));
 
   const csv = [header.join(","), ...rows].join("\n");
@@ -612,15 +605,13 @@ function RunStatusChip({ status }: { status: AgentRunRow["status"] }) {
   );
 }
 
-let _afId = 0;
-
 function AgentField({
   label, value, onChange, type = "text", required, as, rows, placeholder,
 }: {
   label: string; value: string; onChange: (v: string) => void;
   type?: string; required?: boolean; as?: "textarea"; rows?: number; placeholder?: string;
 }) {
-  const id = `af-${(++_afId).toString()}`;
+  const id = useId();
   const cls = "mt-2 w-full rounded-md border border-white/12 bg-white/[0.02] px-3 py-2.5 text-[14px] text-white placeholder:text-white/30 outline-none transition-colors focus:border-[#e84040]";
   return (
     <label htmlFor={id} className="block">

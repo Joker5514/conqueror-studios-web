@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRow } from "@/lib/agents/types";
+import { isUuid, validateCloneName } from "@/lib/agents/validate";
 import { log } from "@/lib/log";
 
 /**
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const { id } = await ctx.params;
   const access = await requireConsoleOwner();
   if (!access.ok) return access.response;
+  if (!isUuid(id)) return NextResponse.json({ error: "Agent not found", code: "not_found" }, { status: 404 });
   const { user } = access;
   const supabase = await createClient();
 
@@ -36,15 +38,17 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const original = source as AgentRow;
 
   // Determine clone name
-  let cloneName: string;
+  let requested: unknown;
   try {
-    const body = await req.json() as { name?: unknown };
-    cloneName = typeof body.name === "string" && body.name.trim()
-      ? body.name.trim()
-      : `Copy of ${original.name}`;
+    requested = ((await req.json()) as { name?: unknown }).name;
   } catch {
-    cloneName = `Copy of ${original.name}`;
+    requested = undefined;
   }
+  const nameResult = validateCloneName(requested, `Copy of ${original.name}`);
+  if (!nameResult.ok) {
+    return NextResponse.json({ error: nameResult.error, code: "invalid_input", field: "name" }, { status: 400 });
+  }
+  const cloneName = nameResult.value;
 
   // Insert clone
   const { data, error } = await supabase

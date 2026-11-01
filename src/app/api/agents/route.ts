@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRow } from "@/lib/agents/types";
+import { validateAgentCreate } from "@/lib/agents/validate";
 import { log } from "@/lib/log";
 
 /**
@@ -35,41 +36,30 @@ export async function GET(): Promise<NextResponse> {
 
 // ── POST — create ─────────────────────────────────────────────────────────────
 
-interface CreateAgentBody {
-  name: string;
-  description?: string;
-  system_prompt?: string;
-  model?: string;
-  tools?: string[];
-}
-
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const access = await requireConsoleOwner();
   if (!access.ok) return access.response;
   const { user } = access;
   const supabase = await createClient();
 
-  let body: Partial<CreateAgentBody>;
+  let body: unknown;
   try {
-    body = await req.json() as Partial<CreateAgentBody>;
+    body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON body", code: "invalid_json" }, { status: 400 });
   }
 
-  if (!body.name?.trim()) {
-    return NextResponse.json({ error: "name is required" }, { status: 400 });
+  const parsed = validateAgentCreate(body, "gpt-4o");
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error, code: "invalid_input", field: parsed.field }, { status: 400 });
   }
 
   const { data, error } = await supabase
     .from("agents")
     .insert({
-      user_id:       user.id,
-      name:          body.name.trim(),
-      description:   body.description?.trim() ?? null,
-      system_prompt: body.system_prompt?.trim() ?? "",
-      model:         body.model?.trim() ?? "gpt-4o",
-      tools:         body.tools ?? [],
-      status:        "draft",
+      user_id: user.id,
+      ...parsed.value,
+      status: "draft",
     })
     .select()
     .single();

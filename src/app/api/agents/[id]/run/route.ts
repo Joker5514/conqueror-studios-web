@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rateLimit";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AgentRow, AgentRunRow } from "@/lib/agents/types";
+import { isUuid, validateRunInput } from "@/lib/agents/validate";
 import { log } from "@/lib/log";
 import { isDatabaseConfigured } from "@/lib/service-config";
 
@@ -23,8 +24,6 @@ import { isDatabaseConfigured } from "@/lib/service-config";
  * is not treated as a token stream.
  */
 
-const MAX_INPUT_CHARS = 16_000;
-
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
@@ -32,6 +31,7 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
 
   const access = await requireConsoleOwner();
   if (!access.ok) return access.response;
+  if (!isUuid(id)) return NextResponse.json({ error: "Agent not found", code: "not_found" }, { status: 404 });
   const { user } = access;
 
   const limit = rateLimit(`agent-run:${user.id}`, { windowMs: 60_000, max: 10 });
@@ -53,20 +53,18 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
 
   const agentRow = agent as AgentRow;
 
-  let body: { input?: string };
+  let body: { input?: unknown };
   try {
-    body = await req.json() as { input?: string };
+    body = (await req.json()) as { input?: unknown };
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON body", code: "invalid_json" }, { status: 400 });
   }
 
-  const input = body.input?.trim() ?? "";
-  if (!input) {
-    return NextResponse.json({ error: "input is required" }, { status: 400 });
+  const inputResult = validateRunInput(body?.input);
+  if (!inputResult.ok) {
+    return NextResponse.json({ error: inputResult.error, code: "invalid_input", field: "input" }, { status: 400 });
   }
-  if (input.length > MAX_INPUT_CHARS) {
-    return NextResponse.json({ error: "input is too long" }, { status: 400 });
-  }
+  const input = inputResult.value;
 
   if (!isDatabaseConfigured()) {
     return NextResponse.json(
@@ -75,7 +73,7 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     );
   }
 
-  const correlationId = crypto.randomUUID();
+  const correlationId = req.headers.get("x-correlation-id") ?? crypto.randomUUID();
   const startedAt = Date.now();
 
   const admin = createAdminClient();
@@ -106,7 +104,8 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       agent_name: agentRow.name,
       system_prompt: agentRow.system_prompt,
       model: agentRow.model,
-      allowed_tools: agentRow.tools.length > 0 ? agentRow.tools : null,
+      // Deny by default: an empty list grants no tools.
+      allowed_tools: agentRow.tools,
     },
   });
 
