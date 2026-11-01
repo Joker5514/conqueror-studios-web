@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { OTP_MESSAGES, otpOutcome } from "@/lib/auth-otp-outcome";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AuthForm() {
@@ -27,15 +28,16 @@ export default function AuthForm() {
         },
       });
 
-      if (error) {
-        setStatus("error");
-        setErrorMsg(error.message);
-      } else {
+      const outcome = otpOutcome(error);
+      if (outcome.kind === "sent") {
         setStatus("sent");
+      } else {
+        setStatus("error");
+        setErrorMsg(OTP_MESSAGES[outcome.kind]);
       }
-    } catch (err) {
+    } catch {
       setStatus("error");
-      setErrorMsg(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setErrorMsg(OTP_MESSAGES.failed);
     }
   }
 
@@ -43,10 +45,9 @@ export default function AuthForm() {
     return (
       <div className="panel-strong p-6 text-center" role="status" aria-live="polite">
         <span className="eyebrow">Check your inbox</span>
-        <p className="mt-3 text-[14px] leading-relaxed text-white/65">
-          We sent a magic link to{" "}
-          <span className="text-white">{email.trim().toLowerCase()}</span>.
-          Click the link to sign in to the console.
+        <p className="mt-3 text-[14px] leading-relaxed text-white/70">
+          If <span className="text-white">{email.trim().toLowerCase()}</span> has console
+          access, a sign-in link is on its way. Open it on this device to finish signing in.
         </p>
         <button
           type="button"
