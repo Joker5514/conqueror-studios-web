@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import type { Metadata } from "next";
 import { Section } from "@/components/site/Section";
+import { isDatabaseConfigured } from "@/lib/service-config";
 import WaitlistForm from "./WaitlistForm";
 
 export const metadata: Metadata = {
@@ -10,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default function WaitlistPage() {
+  const storageReady = isDatabaseConfigured();
   return (
     <>
       <section className="relative overflow-hidden border-b border-white/10">
@@ -28,7 +30,26 @@ export default function WaitlistPage() {
       </section>
 
       <Section className="grid gap-12 py-20 lg:grid-cols-[1.1fr_0.9fr]">
-        <WaitlistForm />
+        {storageReady ? (
+          <WaitlistForm />
+        ) : (
+          <div className="panel-strong p-8" role="status">
+            <span className="eyebrow">Signups by email</span>
+            <h2 className="mt-3 text-2xl font-medium tracking-tight text-white">
+              Online signups are paused.
+            </h2>
+            <p className="mt-3 text-[14px] leading-relaxed text-white/70">
+              The signup form is offline on this deployment. Email the lab with your
+              name, company, and what you&apos;re building, and we&apos;ll add you by hand.
+            </p>
+            <a
+              href="mailto:r.jordan@conqueror-studios.com?subject=Early%20access%20request"
+              className="cs-btn-deploy mt-6 inline-flex"
+            >
+              Email r.jordan@conqueror-studios.com →
+            </a>
+          </div>
+        )}
         <aside className="space-y-6">
           <div className="panel p-6">
             <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">

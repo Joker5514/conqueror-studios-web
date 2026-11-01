@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { tryGetSupabaseServerEnv } from "@/lib/supabase/server-env";
 
-function getSafeRedirectPath(requestUrl: URL, nextPath: string | null): string {
+export function getSafeRedirectPath(requestUrl: URL, nextPath: string | null): string {
   if (!nextPath) {
     return "/";
   }
@@ -21,23 +22,33 @@ function getSafeRedirectPath(requestUrl: URL, nextPath: string | null): string {
   }
 }
 
+function toAuth(requestUrl: URL, error: string): NextResponse {
+  return NextResponse.redirect(new URL(`/auth?error=${error}`, requestUrl.origin));
+}
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
+
+  if (!tryGetSupabaseServerEnv()) {
+    return toAuth(requestUrl, "auth_unconfigured");
+  }
+
+  // Supabase sends expired or reused links back with error parameters.
   const code = requestUrl.searchParams.get("code");
-
-  if (!code) {
-    return NextResponse.redirect(new URL("/", requestUrl.origin));
+  if (!code || requestUrl.searchParams.has("error")) {
+    return toAuth(requestUrl, "link_invalid");
   }
 
-  const supabase = await createClient({ allowCookieWriteFailure: false });
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) {
-    return NextResponse.redirect(new URL("/", requestUrl.origin));
+  try {
+    const supabase = await createClient({ allowCookieWriteFailure: false });
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return toAuth(requestUrl, "link_invalid");
+    }
+  } catch {
+    return toAuth(requestUrl, "auth_unavailable");
   }
 
-  const nextPath = getSafeRedirectPath(
-    requestUrl,
-    requestUrl.searchParams.get("next"),
-  );
+  const nextPath = getSafeRedirectPath(requestUrl, requestUrl.searchParams.get("next"));
   return NextResponse.redirect(new URL(nextPath, requestUrl.origin));
 }

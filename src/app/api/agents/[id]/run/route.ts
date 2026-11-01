@@ -5,6 +5,8 @@ import { rateLimit } from "@/lib/rateLimit";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { AgentRow, AgentRunRow } from "@/lib/agents/types";
+import { log } from "@/lib/log";
+import { isDatabaseConfigured } from "@/lib/service-config";
 
 /**
  * src/app/api/agents/[id]/run/route.ts
@@ -66,6 +68,13 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     return NextResponse.json({ error: "input is too long" }, { status: 400 });
   }
 
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json(
+      { error: "Run history storage is not configured", code: "database_unconfigured" },
+      { status: 503 },
+    );
+  }
+
   const correlationId = crypto.randomUUID();
   const startedAt = Date.now();
 
@@ -83,7 +92,7 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     .single();
 
   if (insertErr || !runRow) {
-    console.error("[agent/run] initial insert error", insertErr);
+    log.error("agent_run.insert_failed", { code: insertErr?.code });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
@@ -141,7 +150,7 @@ export async function POST(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     .select()
     .single();
 
-  if (updateErr) console.error("[agent/run] update error", updateErr);
+  if (updateErr) log.error("agent_run.update_failed", { code: updateErr.code, run_id: run.id });
 
   return NextResponse.json({
     run: (updatedRun ?? run) as AgentRunRow,

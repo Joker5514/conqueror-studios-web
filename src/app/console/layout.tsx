@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { consoleOwnerRedirectPath } from "@/lib/console-owner";
-import { createClient } from "@/lib/supabase/server";
+import { requireConsoleOwnerPage } from "@/lib/console-owner";
 import SignOutButton from "./SignOutButton";
 import ConsoleTabs from "./ConsoleTabs";
 
@@ -18,17 +16,7 @@ import ConsoleTabs from "./ConsoleTabs";
  */
 
 export default async function ConsoleLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth");
-  }
-
-  const ownerRedirect = consoleOwnerRedirectPath(user.email);
-  if (ownerRedirect) redirect(ownerRedirect);
+  const user = await requireConsoleOwnerPage();
 
   return (
     <div className="min-h-screen">

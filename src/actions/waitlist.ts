@@ -3,9 +3,10 @@
 import { headers } from "next/headers";
 import { sendTemplatedEmail } from "@/lib/postmark/send";
 import { configuredSiteOrigin } from "@/lib/site-url";
-import { tryGetSupabaseServerEnv } from "@/lib/supabase/server-env";
 import { normalizeWaitlistInput } from "@/lib/waitlist-input";
 import { rateLimit } from "@/lib/rateLimit";
+import { log } from "@/lib/log";
+import { isDatabaseConfigured } from "@/lib/service-config";
 
 export type WaitlistSignupResult =
   | { ok: true }
@@ -49,9 +50,7 @@ export async function signUpForWaitlist(
   const { email, name, org, interests, message } = normalized.value;
 
   // Do not report success when the row cannot be stored.
-  const serverEnv = tryGetSupabaseServerEnv();
-  const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
-  if (!serverEnv || !hasServiceKey) {
+  if (!isDatabaseConfigured()) {
     return { ok: false, error: "Waitlist storage is not configured." };
   }
 
@@ -67,11 +66,11 @@ export async function signUpForWaitlist(
     });
     if (error) {
       if (error.code === "23505") return { ok: true };
-      console.error("Waitlist insert failed", error);
+      log.error("waitlist.insert_failed", { code: error.code });
       return { ok: false, error: "Failed to save your signup. Please try again." };
     }
   } catch (err) {
-    console.error("Waitlist Supabase error", err);
+    log.error("waitlist.insert_threw", { err });
     return { ok: false, error: "A server error occurred. Please try again." };
   }
 
@@ -94,7 +93,7 @@ export async function signUpForWaitlist(
     });
   } catch (err) {
     // Postmark not configured or transient failure — not fatal.
-    console.warn("Waitlist confirmation email skipped:", (err as Error).message);
+    log.warn("waitlist.confirmation_email_skipped", { err });
   }
 
   return { ok: true };

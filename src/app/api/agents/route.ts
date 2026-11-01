@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRow } from "@/lib/agents/types";
+import { log } from "@/lib/log";
 
 /**
  * src/app/api/agents/route.ts
@@ -25,7 +26,7 @@ export async function GET(): Promise<NextResponse> {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("[agents] list error", error);
+    log.error("agents.list_failed", { code: error.code });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         { status: 409 },
       );
     }
-    console.error("[agents] create error", error);
+    log.error("agents.create_failed", { code: error.code });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 

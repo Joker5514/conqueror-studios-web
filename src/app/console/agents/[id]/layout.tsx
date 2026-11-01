@@ -1,18 +1,11 @@
-import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { consoleOwnerRedirectPath } from "@/lib/console-owner";
-import { createClient } from "@/lib/supabase/server";
+import { requireConsoleOwnerPage } from "@/lib/console-owner";
 
 /**
- * src/app/console/agents/[id]/layout.tsx
- *
- * Auth guard for /console/agents/[id] per AGENTS.md console rules.
+ * Server-side owner guard for /console/agents/[id]. AGENTS.md requires every layout in
+ * the /console subtree to run the check itself, not rely on the parent.
  */
 export default async function ConsoleAgentDetailLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/auth");
-  const ownerRedirect = consoleOwnerRedirectPath(user.email);
-  if (ownerRedirect) redirect(ownerRedirect);
+  await requireConsoleOwnerPage();
   return <>{children}</>;
 }

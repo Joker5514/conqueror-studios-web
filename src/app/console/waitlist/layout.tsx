@@ -1,20 +1,11 @@
-import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { consoleOwnerRedirectPath } from "@/lib/console-owner";
-import { createClient } from "@/lib/supabase/server";
+import { requireConsoleOwnerPage } from "@/lib/console-owner";
 
 /**
- * src/app/console/waitlist/layout.tsx
- *
- * Explicit auth guard for the /console/waitlist sub-route.
- * The parent /console/layout.tsx already guards the subtree, but AGENTS.md
- * requires every layout.tsx in this subtree to perform its own check.
+ * Server-side owner guard for /console/waitlist. AGENTS.md requires every layout in
+ * the /console subtree to run the check itself, not rely on the parent.
  */
 export default async function ConsoleWaitlistLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/auth");
-  const ownerRedirect = consoleOwnerRedirectPath(user.email);
-  if (ownerRedirect) redirect(ownerRedirect);
+  await requireConsoleOwnerPage();
   return <>{children}</>;
 }

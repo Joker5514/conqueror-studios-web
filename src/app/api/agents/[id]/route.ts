@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
 import { createClient } from "@/lib/supabase/server";
 import type { AgentRow } from "@/lib/agents/types";
+import { log } from "@/lib/log";
 
 /**
  * src/app/api/agents/[id]/route.ts
@@ -94,7 +95,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     if (error.code === "23505") {
       return NextResponse.json({ error: "An agent with that name already exists." }, { status: 409 });
     }
-    console.error("[agents] patch error", error);
+    log.error("agents.update_failed", { code: error.code });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
@@ -117,7 +118,7 @@ export async function DELETE(_req: NextRequest, ctx: Ctx): Promise<NextResponse>
     .eq("user_id", user.id);
 
   if (error) {
-    console.error("[agents] delete error", error);
+    log.error("agents.delete_failed", { code: error.code });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 

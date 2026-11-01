@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { requireConsoleOwner } from "@/lib/console-owner";
+import { log } from "@/lib/log";
+import { isDatabaseConfigured } from "@/lib/service-config";
 
 /**
  * src/app/api/console/waitlist/route.ts
@@ -43,9 +45,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   // Enforce a sane floor for limit (at least 1)
   const safeLimit = Math.max(1, limit);
 
-  const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
-  if (!hasServiceKey) {
-    return NextResponse.json({ error: "Admin client not configured" }, { status: 503 });
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json(
+      { error: "Database is not configured", code: "database_unconfigured" },
+      { status: 503 },
+    );
   }
 
   try {
@@ -59,13 +63,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       .range(offset, offset + safeLimit - 1);
 
     if (error) {
-      console.error("[waitlist api] query error", error);
-      return NextResponse.json({ error: "Database error" }, { status: 500 });
+      log.error("console.waitlist.query_failed", { code: error.code });
+      return NextResponse.json({ error: "Database error", code: "database_error" }, { status: 500 });
     }
 
     return NextResponse.json({ rows: rows ?? [], total: count ?? 0 });
   } catch (err) {
-    console.error("[waitlist api] unexpected error", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    log.error("console.waitlist.unexpected", { err });
+    return NextResponse.json({ error: "Database unavailable", code: "database_unavailable" }, { status: 503 });
   }
 }

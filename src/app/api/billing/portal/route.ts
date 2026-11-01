@@ -1,67 +1,65 @@
-import { type NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
+import { NextResponse } from "next/server";
+import { log } from "@/lib/log";
+import { isDatabaseConfigured, isStripeApiConfigured } from "@/lib/service-config";
 import { configuredSiteOrigin } from "@/lib/site-url";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { lookupSession } from "@/lib/supabase/session";
 
 /**
- * src/app/api/billing/portal/route.ts
- *
  * POST /api/billing/portal
  *
- * Creates a Stripe Customer Portal session and returns the redirect URL.
- * Looks up the user's stripe_customer_id from the `subscriptions` table.
- *
- * Required env vars:
- *   STRIPE_SECRET_KEY          — Stripe secret key
- *   NEXT_PUBLIC_SITE_URL       — Used for the return_url (falls back to request origin)
+ * Creates a Stripe Customer Portal session for the signed-in user's own
+ * customer record and returns { url }. Every failure is a JSON error with a
+ * stable code; nothing here throws a 500.
  */
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+function fail(status: number, code: string, error: string): NextResponse {
+  return NextResponse.json({ error, code }, { status, headers: { "Cache-Control": "no-store" } });
+}
 
-export async function POST(_req: NextRequest): Promise<NextResponse> {
-  // ── 1. Auth guard ──────────────────────────────────────────────────────────
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function POST(): Promise<NextResponse> {
+  const session = await lookupSession();
+  if (session.state === "unconfigured") return fail(503, "auth_unconfigured", "Sign-in is not configured.");
+  if (session.state === "unavailable") return fail(503, "auth_unavailable", "Sign-in service unavailable.");
+  if (session.state === "anonymous") return fail(401, "unauthorized", "Unauthorized");
+
+  if (!isDatabaseConfigured()) return fail(503, "database_unconfigured", "Billing records are not configured.");
+  if (!isStripeApiConfigured()) return fail(503, "payments_unconfigured", "Payments are not configured.");
+
+  const email = session.user.email ?? "";
+  if (!email) return fail(404, "no_subscription", "No active subscription found.");
+
+  let customerId: string | null = null;
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const { data, error } = await createAdminClient()
+      .from("subscriptions")
+      .select("stripe_customer_id")
+      .eq("email", email)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      log.error("billing.portal.lookup_failed", { code: error.code });
+      return fail(503, "lookup_failed", "Could not load the billing record.");
+    }
+    customerId = data?.stripe_customer_id ?? null;
+  } catch (err) {
+    log.error("billing.portal.lookup_threw", { err });
+    return fail(503, "lookup_failed", "Could not load the billing record.");
   }
 
-  // ── 2. Stripe key check ────────────────────────────────────────────────────
-  if (!stripeSecretKey) {
-    return NextResponse.json(
-      { error: "Stripe is not configured on this server." },
-      { status: 500 },
-    );
+  if (!customerId) return fail(404, "no_subscription", "No billing record found.");
+
+  try {
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "");
+    const portal = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${configuredSiteOrigin()}/billing`,
+    });
+    return NextResponse.json({ url: portal.url }, { headers: { "Cache-Control": "no-store" } });
+  } catch (err) {
+    log.error("billing.portal.stripe_failed", { err });
+    return fail(502, "stripe_unavailable", "Stripe did not open the billing portal.");
   }
-
-  const stripe = new Stripe(stripeSecretKey);
-
-  // ── 3. Look up Stripe customer id from subscriptions table ─────────────────
-  const admin = createAdminClient();
-  const { data: subscription } = await admin
-    .from("subscriptions")
-    .select("stripe_customer_id")
-    .eq("email", user.email ?? "")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!subscription?.stripe_customer_id) {
-    return NextResponse.json(
-      { error: "No active subscription found." },
-      { status: 404 },
-    );
-  }
-
-  // ── 4. Return URL ──────────────────────────────────────────────────────────
-  const returnUrl = `${configuredSiteOrigin()}/billing`;
-
-  // ── 5. Create portal session ───────────────────────────────────────────────
-  const session = await stripe.billingPortal.sessions.create({
-    customer:   subscription.stripe_customer_id,
-    return_url: returnUrl,
-  });
-
-  return NextResponse.json({ url: session.url });
 }
